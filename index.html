@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rush Studio</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
 body{background:#000;color:#fff;padding:16px;padding-bottom:100px}
@@ -66,7 +69,7 @@ function addExtra(){const input=document.getElementById('extraInput');const valu
 function updateProgress(){const all=[...data[today].business,...data[today].creative,...data[today].mental,...data[today].extra];const done=all.filter(t=>t.done).length;document.getElementById('progress').innerText=`${done}/${all.length} tâches terminées`}
 function updateStreaks(){let english=0,music=0,shop=0;Object.keys(data).forEach(day=>{const d=data[day];if(d.mental.some(t=>t.done))english++;if(d.creative.some(t=>t.done))music++;if(d.business.some(t=>t.done))shop++});document.getElementById('english').innerText=english;document.getElementById('music').innerText=music;document.getElementById('shop').innerText=shop}
 function render(){renderTasks('business','business','green');renderTasks('creative','creative','purple');renderTasks('mental','mental','blue');renderTasks('extra','extra','orange');updateProgress();updateStreaks()}
-render();save();if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js')}
+render();save();if('serviceWorker' in navigator){navigator.serviceWorker.register('./service-worker.js')}
 </script>
 </body>
 </html>
