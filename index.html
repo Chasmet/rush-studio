@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rush Studio</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#000;color:#fff;padding:16px;padding-bottom:100px}
+h1{font-size:32px;margin-bottom:10px}
+.subtitle{opacity:.7;margin-bottom:20px}.section{background:#111;padding:16px;border-radius:18px;margin-bottom:18px}
+.section h2{font-size:22px;margin-bottom:14px}
+.task{display:flex;align-items:center;gap:12px;background:#1a1a1a;padding:14px;border-radius:14px;margin-bottom:10px}
+.task input{width:22px;height:22px}.completed{opacity:.5;text-decoration:line-through}.green{border-left:5px solid #00ff88}.purple{border-left:5px solid #b100ff}.blue{border-left:5px solid #00d9ff}.orange{border-left:5px solid orange}input[type=text]{width:100%;padding:14px;border:none;border-radius:14px;background:#1a1a1a;color:#fff;margin-top:10px}button{width:100%;padding:14px;border:none;border-radius:14px;background:#222;color:#fff;font-size:16px;font-weight:bold;margin-top:10px}.progress{font-size:18px;font-weight:bold}.streak{background:#1a1a1a;padding:12px;border-radius:12px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<h1>🚀 Rush Studio</h1>
+<div class="subtitle" id="dayText">Reset automatique à 5h du matin</div>
+<div class="section green">
+<h2>💸 Business</h2>
+<div id="business"></div>
+</div>
+<div class="section purple">
+<h2>🎵 Créatif</h2>
+<div id="creative"></div>
+</div>
+<div class="section blue">
+<h2>🇬🇧 Mental</h2>
+<div id="mental"></div>
+</div>
+<div class="section orange">
+<h2>⚡ Aujourd’hui seulement</h2>
+<div id="extra"></div>
+<input type="text" id="extraInput" placeholder="Ajouter une tâche...">
+<button onclick="addExtra()">➕ Ajouter</button>
+</div>
+<div class="section">
+<h2>🔥 Streaks</h2>
+<div class="streak">🇬🇧 Anglais : <span id="english">0</span> jours</div>
+<div class="streak">🎵 Musique : <span id="music">0</span> jours</div>
+<div class="streak">💸 TikTok Shop : <span id="shop">0</span> jours</div>
+</div>
+<div class="section">
+<h2>📊 Progression</h2>
+<div class="progress" id="progress"></div>
+</div>
+<script>
+const routines={business:["Créer vidéo TikTok Shop","Poster vidéo produit","Répondre commentaires"],creative:["Créer vidéo musique","Poster extrait TikTok"],mental:["Duolingo 15 min","Réviser anglais"]};
+let data=JSON.parse(localStorage.getItem('rushstudio'))||{};
+function getLogicalDate(){const now=new Date();if(now.getHours()<5){now.setDate(now.getDate()-1)}return now.toISOString().split('T')[0]}
+const today=getLogicalDate();
+if(!data[today]){data[today]={business:routines.business.map(t=>({text:t,done:false})),creative:routines.creative.map(t=>({text:t,done:false})),mental:routines.mental.map(t=>({text:t,done:false})),extra:[]}}
+function save(){localStorage.setItem('rushstudio',JSON.stringify(data))}
+function renderTasks(id,type,color){const container=document.getElementById(id);container.innerHTML='';data[today][type].forEach((task,index)=>{const div=document.createElement('div');div.className=`task ${color} ${task.done?'completed':''}`;div.innerHTML=`<input type='checkbox' ${task.done?'checked':''} onchange="toggleTask('${type}',${index})"><span>${task.text}</span>`;container.appendChild(div)})}
+function toggleTask(type,index){data[today][type][index].done=!data[today][type][index].done;save();render()}
+function addExtra(){const input=document.getElementById('extraInput');const value=input.value.trim();if(!value)return;data[today].extra.push({text:value,done:false});input.value='';save();render()}
+function updateProgress(){const all=[...data[today].business,...data[today].creative,...data[today].mental,...data[today].extra];const done=all.filter(t=>t.done).length;document.getElementById('progress').innerText=`${done}/${all.length} tâches terminées`}
+function updateStreaks(){let english=0,music=0,shop=0;Object.keys(data).forEach(day=>{const d=data[day];if(d.mental.some(t=>t.done))english++;if(d.creative.some(t=>t.done))music++;if(d.business.some(t=>t.done))shop++});document.getElementById('english').innerText=english;document.getElementById('music').innerText=music;document.getElementById('shop').innerText=shop}
+function render(){renderTasks('business','business','green');renderTasks('creative','creative','purple');renderTasks('mental','mental','blue');renderTasks('extra','extra','orange');updateProgress();updateStreaks()}
+render();save();if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js')}
+</script>
+</body>
+</html>
