@@ -1,1 +1,1 @@
-{"name":"Rush Studio","short_name":"Rush","start_url":"./index.html","display":"standalone","background_color":"#000000","theme_color":"#000000","orientation":"portrait"}
+{"name":"Rush Studio","short_name":"Rush","start_url":"./index.html","display":"standalone","background_color":"#000000","theme_color":"#000000","orientation":"portrait","icons":[{"src":"icon.svg","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}
