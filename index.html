@@ -277,6 +277,9 @@ function onAndroidUpdateStatus(message){document.getElementById('updateStatus').
 
 function render(){renderTasks('business','business','green');renderTasks('creative','creative','purple');renderTasks('mental','mental','blue');renderTasks('extra','extra','orange');updateProgress();updateStreaks()}
 render();renderAffairs();save();refreshSettings();
+if(localStorage.getItem('rushAutoUpdate')!=='false'){
+ setTimeout(()=>reloadLiveUpdate(),500);
+}
 
 if('serviceWorker' in navigator&&!location.href.startsWith('file:')){
  navigator.serviceWorker.register('./service-worker.js').then(reg=>{if(localStorage.getItem('rushAutoUpdate')!=='false')reg.update()}).catch(()=>{});
