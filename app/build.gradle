@@ -1,0 +1,70 @@
+plugins {
+    id 'com.android.application'
+}
+
+def ciVersionCode = providers.gradleProperty('versionCode').orNull
+def ciVersionName = providers.gradleProperty('versionName').orNull
+
+android {
+    namespace 'com.chk.rushstudio'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.chk.rushstudio"
+        minSdk 21
+        targetSdk 34
+        versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 20000
+        versionName ciVersionName != null ? ciVersionName : "2.0.0"
+    }
+
+    signingConfigs {
+        release {
+            def ks = System.getenv("ANDROID_KEYSTORE_FILE")
+            if (ks != null && !ks.isEmpty()) {
+                storeFile file(ks)
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
+        release {
+            minifyEnabled false
+            if (System.getenv("ANDROID_KEYSTORE_FILE")) {
+                signingConfig signingConfigs.release
+            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+tasks.register("syncWebAssets", Copy) {
+    from(rootProject.projectDir) {
+        include "index.html"
+        include "manifest.json"
+        include "version.json"
+        include "service-worker.js"
+        include "rush-icon-192.png"
+    }
+    into("$projectDir/src/main/assets/www")
+}
+preBuild.dependsOn(syncWebAssets)
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}
