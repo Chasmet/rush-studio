@@ -13,8 +13,8 @@ android {
         applicationId "com.chk.rushstudio"
         minSdk 21
         targetSdk 34
-        versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 20000
-        versionName ciVersionName != null ? ciVersionName : "2.0.0"
+        versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 21000
+        versionName ciVersionName != null ? ciVersionName : "2.1.0"
     }
 
     signingConfigs {

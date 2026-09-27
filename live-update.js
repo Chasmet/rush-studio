@@ -1,5 +1,5 @@
 (function(){
-  window.RUSH_LIVE_VERSION='2026.09.27.1';
+  window.RUSH_LIVE_VERSION='2026.09.27.2';
   window.RUSH_LIVE_UPDATE_READY=true;
 
   // Live update channel. Future UI/logic patches can be applied here

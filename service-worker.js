@@ -1,4 +1,4 @@
-const CACHE_NAME='rush-studio-v6-courses-bulk';
+const CACHE_NAME='rush-studio-v7-courses-stable';
 const urls=['./','./index.html','./manifest.json','./version.json','./rush-icon-192.png','./rush-icon-512.png','./rush-affaires-icon.png','./rush-courses-icon.png'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(urls)).then(()=>self.skipWaiting()));
