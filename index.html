@@ -248,8 +248,23 @@ function refreshSettings(){
  }else{auto.checked=localStorage.getItem('rushAutoUpdate')!=='false';document.getElementById('installedVersion').textContent=WEB_VERSION}
 }
 function setAutoUpdate(enabled){localStorage.setItem('rushAutoUpdate',enabled?'true':'false');if(isAndroid()){try{window.RushAndroid.setAutoUpdateEnabled(enabled)}catch(e){}}}
+function reloadLiveUpdate(){
+ return new Promise(resolve=>{
+   const old=document.getElementById('rushLiveUpdate');
+   if(old)old.remove();
+   const s=document.createElement('script');
+   s.id='rushLiveUpdate';
+   s.src='https://chasmet.github.io/rush-studio/live-update.js?ts='+Date.now();
+   s.onload=()=>resolve(true);
+   s.onerror=()=>resolve(false);
+   document.body.appendChild(s);
+ });
+}
 async function checkForUpdate(){
- const status=document.getElementById('updateStatus');status.textContent='Vérification en cours…';
+ const status=document.getElementById('updateStatus');status.textContent='Vérification des mises à jour…';
+ const liveOk=await reloadLiveUpdate();
+ if(liveOk&&window.RUSH_LIVE_VERSION){status.textContent='Interface à jour ('+window.RUSH_LIVE_VERSION+'). Vérification de l’APK…';}
+ else if(!liveOk){status.textContent='Interface locale active. Vérification de l’APK…';}
  if(isAndroid()){try{window.RushAndroid.checkForUpdate();status.textContent='Vérification lancée. Tu seras averti si une nouvelle APK est disponible.'}catch(e){status.textContent='Impossible de lancer la vérification.'}return}
  try{const r=await fetch('./version.json?ts='+Date.now(),{cache:'no-store'});const v=await r.json();if(v.version&&v.version!==WEB_VERSION){status.textContent='Nouvelle version '+v.version+' disponible. Recharge l’application pour l’appliquer.';if('serviceWorker' in navigator){const reg=await navigator.serviceWorker.getRegistration();if(reg)await reg.update()}}else{status.textContent='Tu as déjà la dernière version.'}}catch(e){status.textContent='Vérification impossible pour le moment.'}
 }
@@ -267,5 +282,6 @@ if('serviceWorker' in navigator&&!location.href.startsWith('file:')){
  navigator.serviceWorker.register('./service-worker.js').then(reg=>{if(localStorage.getItem('rushAutoUpdate')!=='false')reg.update()}).catch(()=>{});
 }
 </script>
+<script id="rushLiveUpdate" src="https://chasmet.github.io/rush-studio/live-update.js"></script>
 </body>
 </html>
