@@ -115,7 +115,7 @@ public class UpdateManager {
             request.setDescription("Téléchargement de la mise à jour");
             request.setMimeType("application/vnd.android.package-archive");
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setDestinationUri(Uri.fromFile(apk));
+            request.setDestinationInExternalFilesDir(activity, Environment.DIRECTORY_DOWNLOADS, apk.getName());
 
             DownloadManager dm = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
             downloadId = dm.enqueue(request);
@@ -157,11 +157,29 @@ public class UpdateManager {
     }
 
     public void resumePendingInstall() {
+        long pendingId = prefs.getLong("pending_download_id", -1L);
         String path = prefs.getString("pending_apk", null);
-        if (path == null) return;
-        File apk = new File(path);
-        if (apk.exists() && apk.length() > 0) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || activity.getPackageManager().canRequestPackageInstalls()) install(apk);
+        if (pendingId < 0L || path == null) return;
+
+        registerReceiver();
+
+        DownloadManager dm = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        try (Cursor c = dm.query(new DownloadManager.Query().setFilterById(pendingId))) {
+            if (c == null || !c.moveToFirst()) {
+                clearPending();
+                return;
+            }
+
+            int status = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+            if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                File apk = new File(path);
+                if (apk.exists() && apk.length() > 0) install(apk);
+                else clearPending();
+            } else if (status == DownloadManager.STATUS_FAILED) {
+                clearPending();
+                activity.notifyWeb("Le téléchargement de la mise à jour a échoué. Relance Vérifier maintenant.");
+            }
+        } catch (Exception ignored) {
         }
     }
 
@@ -177,7 +195,11 @@ public class UpdateManager {
         intent.setDataAndType(uri, "application/vnd.android.package-archive");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(intent);
-        prefs.edit().remove("pending_download_id").apply();
+        clearPending();
+    }
+
+    private void clearPending() {
+        prefs.edit().remove("pending_download_id").remove("pending_apk").apply();
     }
 
     private int compareVersions(String a, String b) {
