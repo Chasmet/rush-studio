@@ -62,7 +62,6 @@ tasks.register("syncWebAssets", Copy) {
         include "rush-icon-192.png"
         include "rush-icon-512.png"
         include "rush-affaires-icon.png"
-        include "rush-courses-icon.png"
     }
     into("$projectDir/src/main/assets/www")
 }
