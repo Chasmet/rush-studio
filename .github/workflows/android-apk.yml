@@ -48,6 +48,13 @@ jobs:
           name: rush-studio-debug-${{ steps.version.outputs.name }}
           path: app/build/outputs/apk/debug/app-debug.apk
 
+      - name: Auto-update signing status
+        if: env.KEYSTORE_B64 == ''
+        shell: bash
+        run: |
+          echo "### APK auto-update inactive" >> "$GITHUB_STEP_SUMMARY"
+          echo "The debug APK is built, but no signed GitHub Release can be created until the permanent Android signing secrets are configured." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Prepare release signing
         if: env.KEYSTORE_B64 != ''
         shell: bash
