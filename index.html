@@ -36,7 +36,10 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 .setting{display:flex;justify-content:space-between;gap:16px;align-items:center;background:#1a1a1a;padding:14px;border-radius:14px;margin-bottom:10px}.setting small{display:block;opacity:.6;margin-top:4px;line-height:1.3}
 .switch{position:relative;width:52px;height:30px;flex:none}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;background:#333;border-radius:20px;transition:.2s}.slider:before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.switch input:checked+.slider{background:#ff9800}.switch input:checked+.slider:before{transform:translateX(22px)}
 .version-line{font-size:15px;opacity:.8}.status{margin-top:10px;font-size:14px;opacity:.8}
-@media(max-width:380px){.logo-text h1{font-size:27px}.row{grid-template-columns:1fr}}
+.affaires-toolbar{display:flex;gap:10px;align-items:center;margin:8px 0 14px}.affaires-toolbar button{margin:0;flex:1}.persist-chip{flex:none;background:#14261f;color:#75e6a5;border:1px solid #214a37;border-radius:999px;padding:9px 11px;font-size:12px;font-weight:700}
+.section-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.section-title-row h2{margin:0}.count-pill{min-width:32px;height:32px;padding:0 10px;border-radius:999px;background:#222;display:flex;align-items:center;justify-content:center;font-weight:800}
+.affair-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.76);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center}.affair-modal.open{display:flex}.affair-sheet{width:100%;max-width:620px;background:#111;border:1px solid #292929;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;box-shadow:0 -12px 40px rgba(0,0,0,.45)}.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}.sheet-head h2{font-size:24px}.sheet-close{width:42px;height:42px;border-radius:50%;padding:0;margin:0;background:#222;font-size:22px}
+@media(max-width:380px){.logo-text h1{font-size:27px}.row{grid-template-columns:1fr}.persist-chip{display:none}}
 </style>
 </head>
 <body>
@@ -84,11 +87,38 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <div class="logo image-logo"><img src="./rush-affaires-icon.png" alt="Rush Affaires"></div>
 <div class="logo-text">
 <h1>Rush Affaires</h1>
-<p>Papiers, démarches et choses à faire</p><p style="font-size:13px;opacity:.55;margin-top:6px">Aucun reset automatique — les affaires restent jusqu’à validation ou suppression.</p>
+<p>Papiers, démarches et choses à faire</p>
 </div>
 </div>
-<div class="section cyan">
+
+<div class="affaires-toolbar">
+<button class="primary" onclick="openAffairForm()">➕ Ajouter une affaire</button>
+<div class="persist-chip">∞ Sans limite</div>
+</div>
+
+<div class="section">
+<div class="section-title-row">
+<h2>🗂️ Affaires en cours</h2>
+<div class="count-pill" id="affairsOpenCount">0</div>
+</div>
+<div id="affairsOpen"></div>
+</div>
+
+<div class="section">
+<div class="section-title-row">
+<h2>✅ Terminées</h2>
+<div class="count-pill" id="affairsDoneCount">0</div>
+</div>
+<div id="affairsDone"></div>
+</div>
+</section>
+
+<div id="affairModal" class="affair-modal" onclick="closeAffairForm(event)">
+<div class="affair-sheet" onclick="event.stopPropagation()">
+<div class="sheet-head">
 <h2>➕ Nouvelle affaire</h2>
+<button class="sheet-close" onclick="closeAffairForm()">×</button>
+</div>
 <input type="text" id="affairTitle" placeholder="Ex : envoyer le dossier mutuelle">
 <div class="row">
 <select id="affairCategory">
@@ -108,15 +138,7 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <textarea id="affairNotes" placeholder="Note facultative, numéro de dossier, document à prévoir..."></textarea>
 <button class="primary" onclick="addAffair()">Ajouter à mes affaires</button>
 </div>
-<div class="section">
-<h2>🗂️ Affaires en cours</h2>
-<div id="affairsOpen"></div>
 </div>
-<div class="section">
-<h2>✅ Terminées</h2>
-<div id="affairsDone"></div>
-</div>
-</section>
 
 <section id="pageSettings" class="page">
 <div class="header">
@@ -174,12 +196,23 @@ function showPage(name){
  if(name==='Affaires')renderAffairs();
  if(name==='Settings')refreshSettings();
 }
+function openAffairForm(){
+ const modal=document.getElementById('affairModal');
+ modal.classList.add('open');
+ document.body.style.overflow='hidden';
+ setTimeout(()=>document.getElementById('affairTitle').focus(),120);
+}
+function closeAffairForm(event){
+ if(event&&event.target!==document.getElementById('affairModal'))return;
+ document.getElementById('affairModal').classList.remove('open');
+ document.body.style.overflow='';
+}
 function addAffair(){
  const title=document.getElementById('affairTitle').value.trim();
  if(!title)return;
  affairs.unshift({id:Date.now(),title:title,category:document.getElementById('affairCategory').value,priority:document.getElementById('affairPriority').value,notes:document.getElementById('affairNotes').value.trim(),done:false,created:new Date().toISOString()});
  document.getElementById('affairTitle').value='';document.getElementById('affairNotes').value='';
- saveAffairs();renderAffairs();
+ saveAffairs();renderAffairs();closeAffairForm();
 }
 function toggleAffair(id){const a=affairs.find(x=>x.id===id);if(a){a.done=!a.done;saveAffairs();renderAffairs()}}
 function deleteAffair(id){if(!confirm('Supprimer cette affaire ?'))return;affairs=affairs.filter(x=>x.id!==id);saveAffairs();renderAffairs()}
@@ -202,6 +235,8 @@ function createAffairCard(a){
 function renderAffairs(){
  const open=document.getElementById('affairsOpen'),done=document.getElementById('affairsDone');open.innerHTML='';done.innerHTML='';
  const opens=affairs.filter(a=>!a.done),dones=affairs.filter(a=>a.done);
+ document.getElementById('affairsOpenCount').textContent=opens.length;
+ document.getElementById('affairsDoneCount').textContent=dones.length;
  if(!opens.length)open.innerHTML='<div class="empty">Aucune affaire en cours.</div>'; else opens.forEach(a=>open.appendChild(createAffairCard(a)));
  if(!dones.length)done.innerHTML='<div class="empty">Rien de terminé pour le moment.</div>'; else dones.forEach(a=>done.appendChild(createAffairCard(a)));
 }
