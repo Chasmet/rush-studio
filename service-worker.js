@@ -1,5 +1,5 @@
 const CACHE_NAME='rush-studio-v2';
-const urls=['./','./index.html','./manifest.json','./version.json'];
+const urls=['./','./index.html','./manifest.json','./version.json','./rush-icon-192.png','./rush-affaires-icon.png'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(urls)).then(()=>self.skipWaiting()));
 });
