@@ -52,7 +52,7 @@ public class UpdateManager {
                 connection.setRequestProperty("User-Agent", "Rush-Studio-Android");
                 int code = connection.getResponseCode();
                 if (code == 404) {
-                    if (manual) activity.notifyWeb("Aucune Release APK n’est encore publiée sur GitHub.");
+                    if (manual) activity.notifyWeb("Interface mise à jour. Aucune Release APK signée n’est encore publiée.");
                     return;
                 }
                 if (code < 200 || code >= 300) throw new IllegalStateException("HTTP " + code);
