@@ -84,7 +84,7 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <div class="logo image-logo"><img src="./rush-affaires-icon.png" alt="Rush Affaires"></div>
 <div class="logo-text">
 <h1>Rush Affaires</h1>
-<p>Papiers, démarches et choses à faire</p>
+<p>Papiers, démarches et choses à faire</p><p style="font-size:13px;opacity:.55;margin-top:6px">Aucun reset automatique — les affaires restent jusqu’à validation ou suppression.</p>
 </div>
 </div>
 <div class="section cyan">
@@ -105,7 +105,6 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <option value="low">Peut attendre</option>
 </select>
 </div>
-<input type="date" id="affairDate">
 <textarea id="affairNotes" placeholder="Note facultative, numéro de dossier, document à prévoir..."></textarea>
 <button class="primary" onclick="addAffair()">Ajouter à mes affaires</button>
 </div>
@@ -155,6 +154,7 @@ const WEB_VERSION='2.0.0';
 const routines={business:["Créer vidéo TikTok Shop","Poster vidéo produit","Répondre commentaires"],creative:["Créer vidéo musique","Poster extrait TikTok"],mental:["Duolingo 15 min","Réviser anglais"]};
 let data=JSON.parse(localStorage.getItem('rushstudio'))||{};
 let affairs=JSON.parse(localStorage.getItem('rushAffaires'))||[];
+// Rush Affaires is intentionally persistent: no daily/weekly/monthly reset.
 
 function getLogicalDate(){const now=new Date();if(now.getHours()<5){now.setDate(now.getDate()-1)}return now.toISOString().split('T')[0]}
 const today=getLogicalDate();
@@ -177,8 +177,8 @@ function showPage(name){
 function addAffair(){
  const title=document.getElementById('affairTitle').value.trim();
  if(!title)return;
- affairs.unshift({id:Date.now(),title:title,category:document.getElementById('affairCategory').value,priority:document.getElementById('affairPriority').value,due:document.getElementById('affairDate').value,notes:document.getElementById('affairNotes').value.trim(),done:false,created:new Date().toISOString()});
- document.getElementById('affairTitle').value='';document.getElementById('affairDate').value='';document.getElementById('affairNotes').value='';
+ affairs.unshift({id:Date.now(),title:title,category:document.getElementById('affairCategory').value,priority:document.getElementById('affairPriority').value,notes:document.getElementById('affairNotes').value.trim(),done:false,created:new Date().toISOString()});
+ document.getElementById('affairTitle').value='';document.getElementById('affairNotes').value='';
  saveAffairs();renderAffairs();
 }
 function toggleAffair(id){const a=affairs.find(x=>x.id===id);if(a){a.done=!a.done;saveAffairs();renderAffairs()}}
@@ -193,7 +193,6 @@ function createAffairCard(a){
  const meta=document.createElement('div');meta.className='meta';
  const cat=document.createElement('span');cat.className='badge';cat.textContent=a.category;meta.appendChild(cat);
  const pr=document.createElement('span');pr.className='badge '+a.priority;pr.textContent=badgeLabel(a.priority);meta.appendChild(pr);
- if(a.due){const d=document.createElement('span');d.className='badge';d.textContent='📅 '+new Date(a.due+'T12:00:00').toLocaleDateString('fr-FR');meta.appendChild(d)}
  main.appendChild(meta);
  if(a.notes){const notes=document.createElement('div');notes.className='notes';notes.textContent=a.notes;main.appendChild(notes)}
  top.appendChild(cb);top.appendChild(main);div.appendChild(top);
