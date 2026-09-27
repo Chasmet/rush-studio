@@ -21,13 +21,13 @@ body{background:#000;color:#fff;padding:16px;padding-bottom:100px;min-height:100
 .task{display:flex;align-items:center;gap:12px;background:#1a1a1a;padding:14px;border-radius:14px;margin-bottom:10px}
 .task input[type=checkbox]{width:22px;height:22px}.completed{opacity:.5;text-decoration:line-through}
 .green{border-left:5px solid #00ff88}.purple{border-left:5px solid #b100ff}.blue{border-left:5px solid #00d9ff}.orange{border-left:5px solid orange}.cyan{border-left:5px solid #00d9ff}.red{border-left:5px solid #ff3b30}
-input[type=text],input[type=date],select,textarea{width:100%;padding:14px;border:1px solid #272727;border-radius:14px;background:#1a1a1a;color:#fff;margin-top:10px;font-size:16px}
+input[type=text],input[type=date],input[type=number],select,textarea{width:100%;padding:14px;border:1px solid #272727;border-radius:14px;background:#1a1a1a;color:#fff;margin-top:10px;font-size:16px}
 textarea{min-height:86px;resize:vertical}
 button{width:100%;padding:14px;border:none;border-radius:14px;background:#222;color:#fff;font-size:16px;font-weight:bold;margin-top:10px}
 button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#ff7b00,#ffb300);color:#111}.danger{background:#371111;color:#ff8c87}
 .progress{font-size:18px;font-weight:bold}.streak{background:#1a1a1a;padding:12px;border-radius:12px;margin-bottom:10px}
-.bottom-nav{position:fixed;left:0;right:0;bottom:0;background:rgba(12,12,12,.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(3,1fr);padding:8px 8px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #222;z-index:50}
-.nav-btn{margin:0;background:transparent;padding:8px 4px;font-size:12px;color:#8d8d8d;display:flex;flex-direction:column;gap:4px;align-items:center}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;background:rgba(12,12,12,.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 8px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #222;z-index:50}
+.nav-btn{margin:0;background:transparent;padding:8px 2px;font-size:11px;color:#8d8d8d;display:flex;flex-direction:column;gap:4px;align-items:center}
 .nav-btn .nav-icon{font-size:22px}.nav-img{width:25px;height:25px;border-radius:7px;object-fit:cover;display:block}.nav-btn.active{color:#fff}.nav-btn.active .nav-icon,.nav-btn.active .nav-img{filter:drop-shadow(0 0 7px #ff9800)}
 .affair{background:#1a1a1a;border-radius:16px;padding:14px;margin-bottom:10px}.affair-top{display:flex;gap:10px;align-items:flex-start}.affair-main{flex:1}
 .affair-title{font-weight:800;font-size:17px}.meta{opacity:.65;font-size:13px;margin-top:5px;line-height:1.45}.notes{opacity:.85;font-size:14px;margin-top:8px;white-space:pre-wrap}
@@ -39,7 +39,9 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 .affaires-toolbar{display:flex;gap:10px;align-items:center;margin:8px 0 14px}.affaires-toolbar button{margin:0;flex:1}.persist-chip{flex:none;background:#14261f;color:#75e6a5;border:1px solid #214a37;border-radius:999px;padding:9px 11px;font-size:12px;font-weight:700}
 .section-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.section-title-row h2{margin:0}.count-pill{min-width:32px;height:32px;padding:0 10px;border-radius:999px;background:#222;display:flex;align-items:center;justify-content:center;font-weight:800}
 .affair-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.76);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center}.affair-modal.open{display:flex}.affair-sheet{width:100%;max-width:620px;background:#111;border:1px solid #292929;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;box-shadow:0 -12px 40px rgba(0,0,0,.45)}.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}.sheet-head h2{font-size:24px}.sheet-close{width:42px;height:42px;border-radius:50%;padding:0;margin:0;background:#222;font-size:22px}
-@media(max-width:380px){.logo-text h1{font-size:27px}.row{grid-template-columns:1fr}.persist-chip{display:none}}
+.courses-form{display:grid;grid-template-columns:minmax(0,1fr) 82px 108px;gap:8px;align-items:end}.courses-form input{margin-top:0}.courses-list{display:flex;flex-direction:column;gap:9px}.course-item{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;background:#1a1a1a;border:1px solid #252525;border-radius:14px;padding:12px}.course-item.done{opacity:.55}.course-item.done .course-name{text-decoration:line-through}.course-check{width:22px;height:22px}.course-name{font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis}.course-sub{font-size:12px;opacity:.58;margin-top:3px}.course-right{text-align:right;min-width:96px}.course-line-total{font-weight:900;font-size:17px}.qty-controls{display:flex;gap:5px;justify-content:flex-end;margin-top:5px}.qty-btn,.mini-delete{width:30px;height:30px;padding:0;margin:0;border-radius:9px;font-size:16px}.mini-delete{background:#321414;color:#ff8c87;margin-left:4px}.courses-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.courses-actions button{margin:0;padding:11px;font-size:13px}.budget-grid{display:grid;grid-template-columns:1fr 126px;gap:12px;align-items:center}.budget-values{display:grid;grid-template-columns:auto auto;gap:8px 14px;align-items:center}.budget-values strong{text-align:right;font-size:18px}.budget-rest.good{color:#52e37c}.budget-rest.over{color:#ff6b62}.budget-input-wrap label{display:block;font-size:12px;opacity:.62;margin-bottom:5px}.budget-input-wrap input{margin:0}.budget-bar{height:16px;background:#2b2b2b;border-radius:999px;overflow:hidden;margin-top:14px}.budget-fill{height:100%;width:0;background:linear-gradient(90deg,#3ddc84,#ffb300);border-radius:999px;transition:width .25s}.budget-caption{font-size:12px;opacity:.6;margin-top:7px}.courses-empty{opacity:.55;text-align:center;padding:22px 8px}
+@media(max-width:520px){.courses-form{grid-template-columns:minmax(0,1fr) 70px 98px}.budget-grid{grid-template-columns:1fr}.course-right{min-width:88px}}
+@media(max-width:380px){.logo-text h1{font-size:27px}.row{grid-template-columns:1fr}.persist-chip{display:none}.courses-form{grid-template-columns:1fr 70px}.courses-form .course-price-input{grid-column:1/3}.nav-btn{font-size:10px}}
 </style>
 </head>
 <body>
@@ -140,6 +142,56 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 </div>
 </div>
 
+<section id="pageCourses" class="page">
+<div class="header">
+<div class="logo image-logo"><img src="./rush-courses-icon.png" alt="Courses"></div>
+<div class="logo-text">
+<h1>Courses</h1>
+<p>Liste, prix et total automatique</p>
+</div>
+</div>
+
+<div class="section orange">
+<h2>➕ Ajouter un article</h2>
+<div class="courses-form">
+<input type="text" id="courseName" placeholder="Ex : lait" autocomplete="off">
+<input type="number" id="courseQty" min="1" step="1" value="1" inputmode="numeric" aria-label="Quantité">
+<input class="course-price-input" type="number" id="coursePrice" min="0" step="0.01" placeholder="Prix €" inputmode="decimal" aria-label="Prix unitaire">
+</div>
+<button class="primary" onclick="addCourse()">＋ Ajouter à ma liste</button>
+</div>
+
+<div class="section">
+<div class="section-title-row">
+<h2>🛒 Liste de courses</h2>
+<div class="count-pill" id="coursesCount">0</div>
+</div>
+<div id="coursesList" class="courses-list"></div>
+<div class="courses-actions">
+<button onclick="clearCheckedCourses()">✓ Supprimer cochés</button>
+<button class="danger" onclick="clearAllCourses()">Vider la liste</button>
+</div>
+</div>
+
+<div class="section orange">
+<h2>💰 Total</h2>
+<div class="budget-grid">
+<div class="budget-values">
+<span>Total liste :</span><strong id="coursesTotal">0,00 €</strong>
+<span>Déjà pris :</span><strong id="coursesBought">0,00 €</strong>
+<span>Budget :</span><strong id="coursesBudgetDisplay">Non défini</strong>
+<span>Reste :</span><strong id="coursesRemaining" class="budget-rest">—</strong>
+</div>
+<div class="budget-input-wrap">
+<label for="coursesBudget">Définir le budget</label>
+<input type="number" id="coursesBudget" min="0" step="0.01" placeholder="0,00 €" inputmode="decimal" onchange="setCoursesBudget(this.value)">
+</div>
+</div>
+<div class="budget-bar"><div id="coursesBudgetFill" class="budget-fill"></div></div>
+<div id="coursesBudgetCaption" class="budget-caption">Ajoute un budget pour suivre tes dépenses.</div>
+</div>
+</section>
+
 <section id="pageSettings" class="page">
 <div class="header">
 <div class="logo" style="background:linear-gradient(135deg,#646464,#222)">⚙️</div>
@@ -151,7 +203,7 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <div class="section orange">
 <h2>⬆️ Mise à jour</h2>
 <div class="setting">
-<div><strong>Mise à jour automatique</strong><small>Vérifie les nouvelles versions au démarrage. Les tâches et affaires restent enregistrées.</small></div>
+<div><strong>Mise à jour automatique</strong><small>Vérifie les nouvelles versions au démarrage. Les tâches, affaires et courses restent enregistrées.</small></div>
 <label class="switch"><input type="checkbox" id="autoUpdate" onchange="setAutoUpdate(this.checked)"><span class="slider"></span></label>
 </div>
 <div class="version-line">Version installée : <strong id="installedVersion">2.0.0</strong></div>
@@ -160,7 +212,7 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 </div>
 <div class="section">
 <h2>💾 Données</h2>
-<p style="opacity:.72;line-height:1.45">Rush Studio et Rush Affaires utilisent deux stockages séparés. Une mise à jour de l’application ne supprime pas tes tâches.</p>
+<p style="opacity:.72;line-height:1.45">Rush Studio, Rush Affaires et Courses utilisent des stockages persistants séparés. Une mise à jour de l’application ne supprime pas tes données.</p>
 <button onclick="exportData()">Exporter une sauvegarde JSON</button>
 </div>
 </section>
@@ -168,6 +220,7 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <nav class="bottom-nav">
 <button class="nav-btn active" id="navStudio" onclick="showPage('Studio')"><img class="nav-img" src="./rush-icon-192.png" alt=""><span>Rush Studio</span></button>
 <button class="nav-btn" id="navAffaires" onclick="showPage('Affaires')"><img class="nav-img" src="./rush-affaires-icon.png" alt=""><span>Affaires</span></button>
+<button class="nav-btn" id="navCourses" onclick="showPage('Courses')"><img class="nav-img" src="./rush-courses-icon.png" alt=""><span>Courses</span></button>
 <button class="nav-btn" id="navSettings" onclick="showPage('Settings')"><span class="nav-icon">⚙️</span><span>Réglages</span></button>
 </nav>
 
@@ -176,7 +229,9 @@ const WEB_VERSION='2.0.0';
 const routines={business:["Créer vidéo TikTok Shop","Poster vidéo produit","Répondre commentaires"],creative:["Créer vidéo musique","Poster extrait TikTok"],mental:["Duolingo 15 min","Réviser anglais"]};
 let data=JSON.parse(localStorage.getItem('rushstudio'))||{};
 let affairs=JSON.parse(localStorage.getItem('rushAffaires'))||[];
-// Rush Affaires is intentionally persistent: no daily/weekly/monthly reset.
+let courses=JSON.parse(localStorage.getItem('rushCourses'))||[];
+let coursesBudget=parseFloat(localStorage.getItem('rushCoursesBudget')||'0')||0;
+// Rush Affaires and Courses are intentionally persistent: no daily/weekly/monthly reset.
 
 function getLogicalDate(){const now=new Date();if(now.getHours()<5){now.setDate(now.getDate()-1)}return now.toISOString().split('T')[0]}
 const today=getLogicalDate();
@@ -184,6 +239,7 @@ if(!data[today]){data[today]={business:routines.business.map(t=>({text:t,done:fa
 
 function save(){localStorage.setItem('rushstudio',JSON.stringify(data))}
 function saveAffairs(){localStorage.setItem('rushAffaires',JSON.stringify(affairs))}
+function saveCourses(){localStorage.setItem('rushCourses',JSON.stringify(courses));localStorage.setItem('rushCoursesBudget',String(coursesBudget))}
 function renderTasks(id,type,color){const container=document.getElementById(id);container.innerHTML='';data[today][type].forEach((task,index)=>{const div=document.createElement('div');div.className='task '+color+(task.done?' completed':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=task.done;cb.onchange=()=>toggleTask(type,index);const span=document.createElement('span');span.textContent=task.text;div.appendChild(cb);div.appendChild(span);container.appendChild(div)})}
 function toggleTask(type,index){data[today][type][index].done=!data[today][type][index].done;save();render()}
 function addExtra(){const input=document.getElementById('extraInput');const value=input.value.trim();if(!value)return;data[today].extra.push({text:value,done:false});input.value='';save();render()}
@@ -191,9 +247,10 @@ function updateProgress(){const all=[...data[today].business,...data[today].crea
 function updateStreaks(){let english=0,music=0,shop=0;Object.keys(data).forEach(day=>{const d=data[day];if(d.mental&&d.mental.some(t=>t.done))english++;if(d.creative&&d.creative.some(t=>t.done))music++;if(d.business&&d.business.some(t=>t.done))shop++});document.getElementById('english').innerText=english;document.getElementById('music').innerText=music;document.getElementById('shop').innerText=shop}
 
 function showPage(name){
- ['Studio','Affaires','Settings'].forEach(n=>{document.getElementById('page'+n).classList.toggle('active',n===name);document.getElementById('nav'+n).classList.toggle('active',n===name)});
+ ['Studio','Affaires','Courses','Settings'].forEach(n=>{document.getElementById('page'+n).classList.toggle('active',n===name);document.getElementById('nav'+n).classList.toggle('active',n===name)});
  window.scrollTo(0,0);
  if(name==='Affaires')renderAffairs();
+ if(name==='Courses')renderCourses();
  if(name==='Settings')refreshSettings();
 }
 function openAffairForm(){
@@ -240,6 +297,102 @@ function renderAffairs(){
  if(!opens.length)open.innerHTML='<div class="empty">Aucune affaire en cours.</div>'; else opens.forEach(a=>open.appendChild(createAffairCard(a)));
  if(!dones.length)done.innerHTML='<div class="empty">Rien de terminé pour le moment.</div>'; else dones.forEach(a=>done.appendChild(createAffairCard(a)));
 }
+function euro(value){
+ return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(value)||0);
+}
+function addCourse(){
+ const name=document.getElementById('courseName').value.trim();
+ const qty=Math.max(1,parseInt(document.getElementById('courseQty').value||'1',10)||1);
+ const price=Math.max(0,parseFloat(String(document.getElementById('coursePrice').value||'0').replace(',','.'))||0);
+ if(!name)return;
+ courses.unshift({id:Date.now(),name:name,qty:qty,unitPrice:price,done:false,created:new Date().toISOString()});
+ document.getElementById('courseName').value='';
+ document.getElementById('courseQty').value='1';
+ document.getElementById('coursePrice').value='';
+ saveCourses();renderCourses();
+ document.getElementById('courseName').focus();
+}
+function toggleCourse(id){
+ const item=courses.find(x=>x.id===id);
+ if(item){item.done=!item.done;saveCourses();renderCourses()}
+}
+function adjustCourseQty(id,delta){
+ const item=courses.find(x=>x.id===id);
+ if(!item)return;
+ item.qty=Math.max(1,(parseInt(item.qty,10)||1)+delta);
+ saveCourses();renderCourses();
+}
+function deleteCourse(id){
+ courses=courses.filter(x=>x.id!==id);
+ saveCourses();renderCourses();
+}
+function setCoursesBudget(value){
+ coursesBudget=Math.max(0,parseFloat(String(value||'0').replace(',','.'))||0);
+ saveCourses();renderCourses();
+}
+function clearCheckedCourses(){
+ if(!courses.some(x=>x.done))return;
+ courses=courses.filter(x=>!x.done);
+ saveCourses();renderCourses();
+}
+function clearAllCourses(){
+ if(!courses.length)return;
+ if(!confirm('Vider toute la liste de courses ?'))return;
+ courses=[];
+ saveCourses();renderCourses();
+}
+function renderCourses(){
+ const list=document.getElementById('coursesList');
+ if(!list)return;
+ list.innerHTML='';
+ document.getElementById('coursesCount').textContent=courses.length;
+ if(!courses.length){
+   list.innerHTML='<div class="courses-empty">Ta liste est vide. Ajoute ton premier article.</div>';
+ }
+ courses.forEach(item=>{
+   const row=document.createElement('div');row.className='course-item'+(item.done?' done':'');
+   const cb=document.createElement('input');cb.type='checkbox';cb.className='course-check';cb.checked=!!item.done;cb.onchange=()=>toggleCourse(item.id);
+   const main=document.createElement('div');
+   const name=document.createElement('div');name.className='course-name';name.textContent=item.name;
+   const sub=document.createElement('div');sub.className='course-sub';sub.textContent='Prix unitaire : '+euro(item.unitPrice);
+   main.appendChild(name);main.appendChild(sub);
+   const right=document.createElement('div');right.className='course-right';
+   const total=document.createElement('div');total.className='course-line-total';total.textContent=euro((Number(item.qty)||1)*(Number(item.unitPrice)||0));
+   const controls=document.createElement('div');controls.className='qty-controls';
+   const minus=document.createElement('button');minus.className='qty-btn';minus.textContent='−';minus.onclick=()=>adjustCourseQty(item.id,-1);
+   const qty=document.createElement('span');qty.style.cssText='min-width:30px;text-align:center;line-height:30px;font-weight:800';qty.textContent='x'+(Number(item.qty)||1);
+   const plus=document.createElement('button');plus.className='qty-btn';plus.textContent='+';plus.onclick=()=>adjustCourseQty(item.id,1);
+   const del=document.createElement('button');del.className='mini-delete';del.textContent='×';del.onclick=()=>deleteCourse(item.id);
+   controls.appendChild(minus);controls.appendChild(qty);controls.appendChild(plus);controls.appendChild(del);
+   right.appendChild(total);right.appendChild(controls);
+   row.appendChild(cb);row.appendChild(main);row.appendChild(right);list.appendChild(row);
+ });
+ const total=courses.reduce((sum,item)=>sum+(Number(item.qty)||1)*(Number(item.unitPrice)||0),0);
+ const bought=courses.filter(x=>x.done).reduce((sum,item)=>sum+(Number(item.qty)||1)*(Number(item.unitPrice)||0),0);
+ document.getElementById('coursesTotal').textContent=euro(total);
+ document.getElementById('coursesBought').textContent=euro(bought);
+ const budgetInput=document.getElementById('coursesBudget');
+ if(document.activeElement!==budgetInput)budgetInput.value=coursesBudget>0?coursesBudget.toFixed(2):'';
+ const budgetDisplay=document.getElementById('coursesBudgetDisplay');
+ const remaining=document.getElementById('coursesRemaining');
+ const fill=document.getElementById('coursesBudgetFill');
+ const caption=document.getElementById('coursesBudgetCaption');
+ if(coursesBudget>0){
+   const rest=coursesBudget-total;
+   const pct=Math.min(100,Math.max(0,(total/coursesBudget)*100));
+   budgetDisplay.textContent=euro(coursesBudget);
+   remaining.textContent=euro(rest);
+   remaining.className='budget-rest '+(rest>=0?'good':'over');
+   fill.style.width=pct.toFixed(1)+'%';
+   caption.textContent=Math.round((total/coursesBudget)*100)+' % du budget utilisé';
+ }else{
+   budgetDisplay.textContent='Non défini';
+   remaining.textContent='—';
+   remaining.className='budget-rest';
+   fill.style.width='0%';
+   caption.textContent='Ajoute un budget pour suivre tes dépenses.';
+ }
+}
 function isAndroid(){return typeof window.RushAndroid!=='undefined'}
 function refreshSettings(){
  const auto=document.getElementById('autoUpdate');
@@ -269,14 +422,14 @@ async function checkForUpdate(){
  try{const r=await fetch('./version.json?ts='+Date.now(),{cache:'no-store'});const v=await r.json();if(v.version&&v.version!==WEB_VERSION){status.textContent='Nouvelle version '+v.version+' disponible. Recharge l’application pour l’appliquer.';if('serviceWorker' in navigator){const reg=await navigator.serviceWorker.getRegistration();if(reg)await reg.update()}}else{status.textContent='Tu as déjà la dernière version.'}}catch(e){status.textContent='Vérification impossible pour le moment.'}
 }
 function exportData(){
- const payload=JSON.stringify({exportedAt:new Date().toISOString(),rushstudio:data,rushAffaires:affairs},null,2);
+ const payload=JSON.stringify({exportedAt:new Date().toISOString(),rushstudio:data,rushAffaires:affairs,rushCourses:courses,rushCoursesBudget:coursesBudget},null,2);
  if(isAndroid()&&window.RushAndroid.exportBackup){try{window.RushAndroid.exportBackup(payload);return}catch(e){}}
  const blob=new Blob([payload],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='rush-studio-sauvegarde.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 function onAndroidUpdateStatus(message){document.getElementById('updateStatus').textContent=message;showPage('Settings')}
 
 function render(){renderTasks('business','business','green');renderTasks('creative','creative','purple');renderTasks('mental','mental','blue');renderTasks('extra','extra','orange');updateProgress();updateStreaks()}
-render();renderAffairs();save();refreshSettings();
+render();renderAffairs();renderCourses();save();saveCourses();refreshSettings();
 if(localStorage.getItem('rushAutoUpdate')!=='false'){
  setTimeout(()=>reloadLiveUpdate(),500);
 }
