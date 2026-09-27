@@ -1,1 +1,21 @@
-const CACHE_NAME='rush-studio-v1';const urls=['./','./index.html','./manifest.json'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(urls)))});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})
+const CACHE_NAME='rush-studio-v2';
+const urls=['./','./index.html','./manifest.json','./version.json'];
+self.addEventListener('install',event=>{
+  event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(urls)).then(()=>self.skipWaiting()));
+});
+self.addEventListener('activate',event=>{
+  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener('fetch',event=>{
+  if(event.request.method!=='GET')return;
+  const url=new URL(event.request.url);
+  if(url.pathname.endsWith('/version.json')){
+    event.respondWith(fetch(event.request,{cache:'no-store'}).catch(()=>caches.match('./version.json')));
+    return;
+  }
+  event.respondWith(fetch(event.request).then(response=>{
+    const copy=response.clone();
+    caches.open(CACHE_NAME).then(cache=>cache.put(event.request,copy));
+    return response;
+  }).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html'))));
+});
