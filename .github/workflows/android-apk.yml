@@ -36,6 +36,9 @@ jobs:
       - name: Prepare Gradle
         run: chmod +x gradlew
 
+      - name: Validate PNG icons
+        run: python3 scripts/check_png.py
+
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug -PversionName=${{ steps.version.outputs.name }} -PversionCode=${{ steps.version.outputs.code }}
 
