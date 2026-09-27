@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Rush Studio</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#000000">
@@ -10,17 +10,38 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:#000;color:#fff;padding:16px;padding-bottom:100px}
+:root{color-scheme:dark}
+body{background:#000;color:#fff;padding:16px;padding-bottom:100px;min-height:100vh}
+.page{display:none}.page.active{display:block}
 .header{display:flex;align-items:center;gap:14px;margin-bottom:10px}
 .logo{width:70px;height:70px;border-radius:20px;background:linear-gradient(135deg,#ff7b00,#ffcc00);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 0 25px rgba(255,136,0,.5)}
 .logo-text h1{font-size:32px;font-weight:900}.logo-text p{opacity:.7;margin-top:4px}
 .section{background:#111;padding:16px;border-radius:18px;margin-bottom:18px}
 .section h2{font-size:22px;margin-bottom:14px}
 .task{display:flex;align-items:center;gap:12px;background:#1a1a1a;padding:14px;border-radius:14px;margin-bottom:10px}
-.task input{width:22px;height:22px}.completed{opacity:.5;text-decoration:line-through}.green{border-left:5px solid #00ff88}.purple{border-left:5px solid #b100ff}.blue{border-left:5px solid #00d9ff}.orange{border-left:5px solid orange}input[type=text]{width:100%;padding:14px;border:none;border-radius:14px;background:#1a1a1a;color:#fff;margin-top:10px}button{width:100%;padding:14px;border:none;border-radius:14px;background:#222;color:#fff;font-size:16px;font-weight:bold;margin-top:10px}.progress{font-size:18px;font-weight:bold}.streak{background:#1a1a1a;padding:12px;border-radius:12px;margin-bottom:10px}
+.task input[type=checkbox]{width:22px;height:22px}.completed{opacity:.5;text-decoration:line-through}
+.green{border-left:5px solid #00ff88}.purple{border-left:5px solid #b100ff}.blue{border-left:5px solid #00d9ff}.orange{border-left:5px solid orange}.cyan{border-left:5px solid #00d9ff}.red{border-left:5px solid #ff3b30}
+input[type=text],input[type=date],select,textarea{width:100%;padding:14px;border:1px solid #272727;border-radius:14px;background:#1a1a1a;color:#fff;margin-top:10px;font-size:16px}
+textarea{min-height:86px;resize:vertical}
+button{width:100%;padding:14px;border:none;border-radius:14px;background:#222;color:#fff;font-size:16px;font-weight:bold;margin-top:10px}
+button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#ff7b00,#ffb300);color:#111}.danger{background:#371111;color:#ff8c87}
+.progress{font-size:18px;font-weight:bold}.streak{background:#1a1a1a;padding:12px;border-radius:12px;margin-bottom:10px}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;background:rgba(12,12,12,.96);backdrop-filter:blur(16px);display:grid;grid-template-columns:repeat(3,1fr);padding:8px 8px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #222;z-index:50}
+.nav-btn{margin:0;background:transparent;padding:8px 4px;font-size:12px;color:#8d8d8d;display:flex;flex-direction:column;gap:4px;align-items:center}
+.nav-btn .nav-icon{font-size:22px}.nav-btn.active{color:#fff}.nav-btn.active .nav-icon{filter:drop-shadow(0 0 7px #ff9800)}
+.affair{background:#1a1a1a;border-radius:16px;padding:14px;margin-bottom:10px}.affair-top{display:flex;gap:10px;align-items:flex-start}.affair-main{flex:1}
+.affair-title{font-weight:800;font-size:17px}.meta{opacity:.65;font-size:13px;margin-top:5px;line-height:1.45}.notes{opacity:.85;font-size:14px;margin-top:8px;white-space:pre-wrap}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#2a2a2a;font-size:12px;margin-right:5px}.badge.high{background:#4a1717;color:#ff9b95}.badge.medium{background:#44340c;color:#ffd56a}.badge.low{background:#123322;color:#72e59f}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.inline-actions{display:flex;gap:8px;margin-top:10px}.inline-actions button{margin:0;padding:10px}.empty{opacity:.6;text-align:center;padding:24px 8px}
+.setting{display:flex;justify-content:space-between;gap:16px;align-items:center;background:#1a1a1a;padding:14px;border-radius:14px;margin-bottom:10px}.setting small{display:block;opacity:.6;margin-top:4px;line-height:1.3}
+.switch{position:relative;width:52px;height:30px;flex:none}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;background:#333;border-radius:20px;transition:.2s}.slider:before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.switch input:checked+.slider{background:#ff9800}.switch input:checked+.slider:before{transform:translateX(22px)}
+.version-line{font-size:15px;opacity:.8}.status{margin-top:10px;font-size:14px;opacity:.8}
+@media(max-width:380px){.logo-text h1{font-size:27px}.row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+
+<section id="pageStudio" class="page active">
 <div class="header">
 <div class="logo">🚀</div>
 <div class="logo-text">
@@ -56,20 +77,161 @@ body{background:#000;color:#fff;padding:16px;padding-bottom:100px}
 <h2>📊 Progression</h2>
 <div class="progress" id="progress"></div>
 </div>
+</section>
+
+<section id="pageAffaires" class="page">
+<div class="header">
+<div class="logo" style="background:linear-gradient(135deg,#00b8ff,#0068ff)">📁</div>
+<div class="logo-text">
+<h1>Rush Affaires</h1>
+<p>Papiers, démarches et choses à faire</p>
+</div>
+</div>
+<div class="section cyan">
+<h2>➕ Nouvelle affaire</h2>
+<input type="text" id="affairTitle" placeholder="Ex : envoyer le dossier mutuelle">
+<div class="row">
+<select id="affairCategory">
+<option value="Papier">📄 Papier</option>
+<option value="Administratif">🏛️ Administratif</option>
+<option value="Maison">🏠 Maison</option>
+<option value="Travail">🧰 Travail</option>
+<option value="Famille">👨‍👩‍👧‍👦 Famille</option>
+<option value="Autre">📌 Autre</option>
+</select>
+<select id="affairPriority">
+<option value="medium">Priorité normale</option>
+<option value="high">Urgent</option>
+<option value="low">Peut attendre</option>
+</select>
+</div>
+<input type="date" id="affairDate">
+<textarea id="affairNotes" placeholder="Note facultative, numéro de dossier, document à prévoir..."></textarea>
+<button class="primary" onclick="addAffair()">Ajouter à mes affaires</button>
+</div>
+<div class="section">
+<h2>🗂️ Affaires en cours</h2>
+<div id="affairsOpen"></div>
+</div>
+<div class="section">
+<h2>✅ Terminées</h2>
+<div id="affairsDone"></div>
+</div>
+</section>
+
+<section id="pageSettings" class="page">
+<div class="header">
+<div class="logo" style="background:linear-gradient(135deg,#646464,#222)">⚙️</div>
+<div class="logo-text">
+<h1>Réglages</h1>
+<p>Application et mises à jour</p>
+</div>
+</div>
+<div class="section orange">
+<h2>⬆️ Mise à jour</h2>
+<div class="setting">
+<div><strong>Mise à jour automatique</strong><small>Vérifie les nouvelles versions au démarrage. Les tâches et affaires restent enregistrées.</small></div>
+<label class="switch"><input type="checkbox" id="autoUpdate" onchange="setAutoUpdate(this.checked)"><span class="slider"></span></label>
+</div>
+<div class="version-line">Version installée : <strong id="installedVersion">2.0.0</strong></div>
+<button class="primary" onclick="checkForUpdate()">🔎 Vérifier maintenant</button>
+<div class="status" id="updateStatus"></div>
+</div>
+<div class="section">
+<h2>💾 Données</h2>
+<p style="opacity:.72;line-height:1.45">Rush Studio et Rush Affaires utilisent deux stockages séparés. Une mise à jour de l’application ne supprime pas tes tâches.</p>
+<button onclick="exportData()">Exporter une sauvegarde JSON</button>
+</div>
+</section>
+
+<nav class="bottom-nav">
+<button class="nav-btn active" id="navStudio" onclick="showPage('Studio')"><span class="nav-icon">🚀</span><span>Rush Studio</span></button>
+<button class="nav-btn" id="navAffaires" onclick="showPage('Affaires')"><span class="nav-icon">📁</span><span>Affaires</span></button>
+<button class="nav-btn" id="navSettings" onclick="showPage('Settings')"><span class="nav-icon">⚙️</span><span>Réglages</span></button>
+</nav>
+
 <script>
+const WEB_VERSION='2.0.0';
 const routines={business:["Créer vidéo TikTok Shop","Poster vidéo produit","Répondre commentaires"],creative:["Créer vidéo musique","Poster extrait TikTok"],mental:["Duolingo 15 min","Réviser anglais"]};
 let data=JSON.parse(localStorage.getItem('rushstudio'))||{};
+let affairs=JSON.parse(localStorage.getItem('rushAffaires'))||[];
+
 function getLogicalDate(){const now=new Date();if(now.getHours()<5){now.setDate(now.getDate()-1)}return now.toISOString().split('T')[0]}
 const today=getLogicalDate();
 if(!data[today]){data[today]={business:routines.business.map(t=>({text:t,done:false})),creative:routines.creative.map(t=>({text:t,done:false})),mental:routines.mental.map(t=>({text:t,done:false})),extra:[]}}
+
 function save(){localStorage.setItem('rushstudio',JSON.stringify(data))}
-function renderTasks(id,type,color){const container=document.getElementById(id);container.innerHTML='';data[today][type].forEach((task,index)=>{const div=document.createElement('div');div.className=`task ${color} ${task.done?'completed':''}`;div.innerHTML=`<input type='checkbox' ${task.done?'checked':''} onchange="toggleTask('${type}',${index})"><span>${task.text}</span>`;container.appendChild(div)})}
+function saveAffairs(){localStorage.setItem('rushAffaires',JSON.stringify(affairs))}
+function renderTasks(id,type,color){const container=document.getElementById(id);container.innerHTML='';data[today][type].forEach((task,index)=>{const div=document.createElement('div');div.className='task '+color+(task.done?' completed':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=task.done;cb.onchange=()=>toggleTask(type,index);const span=document.createElement('span');span.textContent=task.text;div.appendChild(cb);div.appendChild(span);container.appendChild(div)})}
 function toggleTask(type,index){data[today][type][index].done=!data[today][type][index].done;save();render()}
 function addExtra(){const input=document.getElementById('extraInput');const value=input.value.trim();if(!value)return;data[today].extra.push({text:value,done:false});input.value='';save();render()}
-function updateProgress(){const all=[...data[today].business,...data[today].creative,...data[today].mental,...data[today].extra];const done=all.filter(t=>t.done).length;document.getElementById('progress').innerText=`${done}/${all.length} tâches terminées`}
-function updateStreaks(){let english=0,music=0,shop=0;Object.keys(data).forEach(day=>{const d=data[day];if(d.mental.some(t=>t.done))english++;if(d.creative.some(t=>t.done))music++;if(d.business.some(t=>t.done))shop++});document.getElementById('english').innerText=english;document.getElementById('music').innerText=music;document.getElementById('shop').innerText=shop}
+function updateProgress(){const all=[...data[today].business,...data[today].creative,...data[today].mental,...data[today].extra];const done=all.filter(t=>t.done).length;document.getElementById('progress').innerText=done+'/'+all.length+' tâches terminées'}
+function updateStreaks(){let english=0,music=0,shop=0;Object.keys(data).forEach(day=>{const d=data[day];if(d.mental&&d.mental.some(t=>t.done))english++;if(d.creative&&d.creative.some(t=>t.done))music++;if(d.business&&d.business.some(t=>t.done))shop++});document.getElementById('english').innerText=english;document.getElementById('music').innerText=music;document.getElementById('shop').innerText=shop}
+
+function showPage(name){
+ ['Studio','Affaires','Settings'].forEach(n=>{document.getElementById('page'+n).classList.toggle('active',n===name);document.getElementById('nav'+n).classList.toggle('active',n===name)});
+ window.scrollTo(0,0);
+ if(name==='Affaires')renderAffairs();
+ if(name==='Settings')refreshSettings();
+}
+function addAffair(){
+ const title=document.getElementById('affairTitle').value.trim();
+ if(!title)return;
+ affairs.unshift({id:Date.now(),title:title,category:document.getElementById('affairCategory').value,priority:document.getElementById('affairPriority').value,due:document.getElementById('affairDate').value,notes:document.getElementById('affairNotes').value.trim(),done:false,created:new Date().toISOString()});
+ document.getElementById('affairTitle').value='';document.getElementById('affairDate').value='';document.getElementById('affairNotes').value='';
+ saveAffairs();renderAffairs();
+}
+function toggleAffair(id){const a=affairs.find(x=>x.id===id);if(a){a.done=!a.done;saveAffairs();renderAffairs()}}
+function deleteAffair(id){if(!confirm('Supprimer cette affaire ?'))return;affairs=affairs.filter(x=>x.id!==id);saveAffairs();renderAffairs()}
+function badgeLabel(p){return p==='high'?'Urgent':p==='low'?'Peut attendre':'Normal'}
+function createAffairCard(a){
+ const div=document.createElement('div');div.className='affair'+(a.done?' completed':'');
+ const top=document.createElement('div');top.className='affair-top';
+ const cb=document.createElement('input');cb.type='checkbox';cb.checked=a.done;cb.style.cssText='width:22px;height:22px;margin-top:2px';cb.onchange=()=>toggleAffair(a.id);
+ const main=document.createElement('div');main.className='affair-main';
+ const title=document.createElement('div');title.className='affair-title';title.textContent=a.title;main.appendChild(title);
+ const meta=document.createElement('div');meta.className='meta';
+ const cat=document.createElement('span');cat.className='badge';cat.textContent=a.category;meta.appendChild(cat);
+ const pr=document.createElement('span');pr.className='badge '+a.priority;pr.textContent=badgeLabel(a.priority);meta.appendChild(pr);
+ if(a.due){const d=document.createElement('span');d.className='badge';d.textContent='📅 '+new Date(a.due+'T12:00:00').toLocaleDateString('fr-FR');meta.appendChild(d)}
+ main.appendChild(meta);
+ if(a.notes){const notes=document.createElement('div');notes.className='notes';notes.textContent=a.notes;main.appendChild(notes)}
+ top.appendChild(cb);top.appendChild(main);div.appendChild(top);
+ const actions=document.createElement('div');actions.className='inline-actions';const del=document.createElement('button');del.className='danger';del.textContent='Supprimer';del.onclick=()=>deleteAffair(a.id);actions.appendChild(del);div.appendChild(actions);
+ return div;
+}
+function renderAffairs(){
+ const open=document.getElementById('affairsOpen'),done=document.getElementById('affairsDone');open.innerHTML='';done.innerHTML='';
+ const opens=affairs.filter(a=>!a.done),dones=affairs.filter(a=>a.done);
+ if(!opens.length)open.innerHTML='<div class="empty">Aucune affaire en cours.</div>'; else opens.forEach(a=>open.appendChild(createAffairCard(a)));
+ if(!dones.length)done.innerHTML='<div class="empty">Rien de terminé pour le moment.</div>'; else dones.forEach(a=>done.appendChild(createAffairCard(a)));
+}
+function isAndroid(){return typeof window.RushAndroid!=='undefined'}
+function refreshSettings(){
+ const auto=document.getElementById('autoUpdate');
+ if(isAndroid()){
+   try{auto.checked=window.RushAndroid.isAutoUpdateEnabled();document.getElementById('installedVersion').textContent=window.RushAndroid.getAppVersion()}catch(e){}
+ }else{auto.checked=localStorage.getItem('rushAutoUpdate')!=='false';document.getElementById('installedVersion').textContent=WEB_VERSION}
+}
+function setAutoUpdate(enabled){localStorage.setItem('rushAutoUpdate',enabled?'true':'false');if(isAndroid()){try{window.RushAndroid.setAutoUpdateEnabled(enabled)}catch(e){}}}
+async function checkForUpdate(){
+ const status=document.getElementById('updateStatus');status.textContent='Vérification en cours…';
+ if(isAndroid()){try{window.RushAndroid.checkForUpdate();status.textContent='Vérification lancée. Tu seras averti si une nouvelle APK est disponible.'}catch(e){status.textContent='Impossible de lancer la vérification.'}return}
+ try{const r=await fetch('./version.json?ts='+Date.now(),{cache:'no-store'});const v=await r.json();if(v.version&&v.version!==WEB_VERSION){status.textContent='Nouvelle version '+v.version+' disponible. Recharge l’application pour l’appliquer.';if('serviceWorker' in navigator){const reg=await navigator.serviceWorker.getRegistration();if(reg)await reg.update()}}else{status.textContent='Tu as déjà la dernière version.'}}catch(e){status.textContent='Vérification impossible pour le moment.'}
+}
+function exportData(){
+ const payload=JSON.stringify({exportedAt:new Date().toISOString(),rushstudio:data,rushAffaires:affairs},null,2);
+ if(isAndroid()&&window.RushAndroid.exportBackup){try{window.RushAndroid.exportBackup(payload);return}catch(e){}}
+ const blob=new Blob([payload],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='rush-studio-sauvegarde.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function onAndroidUpdateStatus(message){document.getElementById('updateStatus').textContent=message;showPage('Settings')}
+
 function render(){renderTasks('business','business','green');renderTasks('creative','creative','purple');renderTasks('mental','mental','blue');renderTasks('extra','extra','orange');updateProgress();updateStreaks()}
-render();save();if('serviceWorker' in navigator){navigator.serviceWorker.register('./service-worker.js')}
+render();renderAffairs();save();refreshSettings();
+
+if('serviceWorker' in navigator&&!location.href.startsWith('file:')){
+ navigator.serviceWorker.register('./service-worker.js').then(reg=>{if(localStorage.getItem('rushAutoUpdate')!=='false')reg.update()}).catch(()=>{});
+}
 </script>
 </body>
 </html>
