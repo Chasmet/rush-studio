@@ -28,10 +28,13 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Android SDK 36
-        uses: android-actions/setup-android@v3
       - name: Installer la plateforme Android 36
-        run: sdkmanager --install "platforms;android-36"
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)"
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-36"
 
       - name: Contrôler les icônes originales
         run: python3 scripts/check_png.py
