@@ -5,7 +5,7 @@ WRAPPER_JAR="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
 if [ -f "$WRAPPER_JAR" ]; then
   exec java -classpath "$WRAPPER_JAR" org.gradle.wrapper.GradleWrapperMain "$@"
 fi
-GRADLE_VERSION=8.7
+GRADLE_VERSION=8.13
 BASE="${GRADLE_USER_HOME:-$HOME/.gradle}/rush-wrapper"
 GRADLE_HOME="$BASE/gradle-$GRADLE_VERSION"
 if [ ! -x "$GRADLE_HOME/bin/gradle" ]; then

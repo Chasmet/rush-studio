@@ -41,6 +41,36 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 .affair-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.76);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center}.affair-modal.open{display:flex}.affair-sheet{width:100%;max-width:620px;background:#111;border:1px solid #292929;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;box-shadow:0 -12px 40px rgba(0,0,0,.45)}.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}.sheet-head h2{font-size:24px}.sheet-close{width:42px;height:42px;border-radius:50%;padding:0;margin:0;background:#222;font-size:22px}
 .courses-form{display:grid;grid-template-columns:minmax(0,1fr) 82px 108px;gap:8px;align-items:end}.courses-hint{font-size:12px;opacity:.58;margin:8px 2px 0;line-height:1.4}.course-feedback{font-size:13px;color:#75e6a5;min-height:18px;margin:8px 2px 0}.course-search{margin:0 0 12px!important}.course-price-edit{width:86px!important;padding:7px 8px!important;margin:4px 0 0!important;border-radius:9px!important;text-align:right;font-size:13px!important}.courses-summary-line{font-size:13px;opacity:.66;margin:-5px 0 12px}.courses-remaining{font-weight:800;color:#ffbe3b}.courses-form input{margin-top:0}.courses-list{display:flex;flex-direction:column;gap:9px}.course-item{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;background:#1a1a1a;border:1px solid #252525;border-radius:14px;padding:12px}.course-item.done{opacity:.55}.course-item.done .course-name{text-decoration:line-through}.course-check{width:22px;height:22px}.course-name{font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis}.course-sub{font-size:12px;opacity:.58;margin-top:3px}.course-right{text-align:right;min-width:96px}.course-line-total{font-weight:900;font-size:17px}.qty-controls{display:flex;gap:5px;justify-content:flex-end;margin-top:5px}.qty-btn,.mini-delete{width:30px;height:30px;padding:0;margin:0;border-radius:9px;font-size:16px}.mini-delete{background:#321414;color:#ff8c87;margin-left:4px}.courses-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.courses-actions button{margin:0;padding:11px;font-size:13px}.budget-grid{display:grid;grid-template-columns:1fr 126px;gap:12px;align-items:center}.budget-values{display:grid;grid-template-columns:auto auto;gap:8px 14px;align-items:center}.budget-values strong{text-align:right;font-size:18px}.budget-rest.good{color:#52e37c}.budget-rest.over{color:#ff6b62}.budget-input-wrap label{display:block;font-size:12px;opacity:.62;margin-bottom:5px}.budget-input-wrap input{margin:0}.budget-bar{height:16px;background:#2b2b2b;border-radius:999px;overflow:hidden;margin-top:14px}.budget-fill{height:100%;width:0;background:linear-gradient(90deg,#3ddc84,#ffb300);border-radius:999px;transition:width .25s}.budget-caption{font-size:12px;opacity:.6;margin-top:7px}.courses-empty{opacity:.55;text-align:center;padding:22px 8px}
 @media(max-width:520px){.courses-form{grid-template-columns:minmax(0,1fr) 70px 98px}.budget-grid{grid-template-columns:1fr}.course-right{min-width:88px}}
+
+/* Sync 30 Numérique · Design Rush Studio 2.2 */
+:root{--rush-orange:#ff9800;--rush-surface:#151515;--rush-border:#303030}
+body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparent 290px),#08090c;color:#f7f7fa;max-width:680px;margin:0 auto;padding:18px 16px 120px}
+.section{background:linear-gradient(150deg,#181a20,#101116);border:1px solid #262a32;border-radius:22px;box-shadow:0 7px 24px rgba(0,0,0,.14)}
+.section.green,.section.purple,.section.blue,.section.orange{border-left-width:4px}
+.header{margin:13px 0 20px}.logo{width:65px;height:65px;box-shadow:0 6px 22px rgba(255,153,0,.12)}
+.logo-text h1{font-size:29px;letter-spacing:-.8px}.logo-text p{font-size:12px;line-height:1.5}
+.brandline{font-size:12px;font-weight:750;color:#ffc66d;letter-spacing:.2px;margin-top:5px}
+.brand-overline{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#ffb44c;margin-bottom:6px}
+.hero{background:linear-gradient(125deg,#251b12,#181a20 72%);border:1px solid #634420;border-radius:24px;padding:20px;margin:4px 0 20px}
+.hero h2{font-size:23px;letter-spacing:-.5px;line-height:1.25;margin-bottom:6px}
+.hero p{color:#c8c9ce;font-size:13px;line-height:1.55}
+.hero-line{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:14px}
+.hero-metric{font-size:13px;font-weight:700;color:#ffb95f}
+.hero-action{width:auto;background:#ff9800;color:#16110a;font-size:13px;padding:10px 15px;margin:0;border-radius:999px}
+.section h2{font-size:19px;letter-spacing:-.2px}.task,.affair,.course-item,.setting{border:1px solid #282b31;background:#1e2026}
+.task:has(input:checked){opacity:.55}button{transition:filter .15s ease,transform .15s ease}button:focus-visible,input:focus-visible{outline:2px solid #ffc265;outline-offset:2px}
+.bottom-nav{max-width:680px;margin:0 auto;background:rgba(12,13,17,.98);border-top:1px solid #31333a;border-radius:20px 20px 0 0}
+.brand-footer{text-align:center;color:#a3a5ac;font-size:12px;margin:18px 0 4px;line-height:1.65}.brand-footer b{color:#fcb758}
+.premium-card{background:linear-gradient(140deg,#35210b,#1a1b20 65%);border:1px solid #a06a26}
+.premium-price{font-size:32px;font-weight:900;margin:9px 0;color:#ffbc59;letter-spacing:-1px}
+.premium-price span{font-size:12px;color:#ccc;font-weight:500;letter-spacing:0}
+.perks{margin:10px 0 14px 18px;line-height:1.8;color:#dedee2;font-size:14px}
+.small-muted{font-size:12px;color:#b4b5be;line-height:1.55}
+.pro-state{display:inline-block;padding:7px 10px;background:#342715;border:1px solid #7c5a2e;color:#ffca74;border-radius:999px;font-size:12px;font-weight:800}
+.link-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.link-row button{font-size:13px;padding:12px 8px}
+.news-item{padding:11px 0;border-top:1px solid #292a30;font-size:13px;line-height:1.5;color:#e0e0e3}
+.news-item:first-of-type{border-top:0}
 @media(max-width:380px){.logo-text h1{font-size:27px}.row{grid-template-columns:1fr}.persist-chip{display:none}.courses-form{grid-template-columns:1fr 70px}.courses-form .course-price-input{grid-column:1/3}.nav-btn{font-size:10px}}
 </style>
 </head>
@@ -70,9 +100,10 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <div class="logo image-logo"><img src="./rush-icon-192.png" alt="Rush Studio"></div>
 <div class="logo-text">
 <h1>Rush Studio</h1>
-<p>Reset automatique à 5h du matin</p>
+<p>Organise tes projets, affaires et courses</p><div class="brandline">par Sync 30 Numérique</div>
 </div>
 </div>
+<div class="hero"><div class="brand-overline">Ton espace quotidien</div><h2>Chaque jour, avance sur l’essentiel.</h2><p>Un studio personnel pour rester concentré. Tes données restent sur ton appareil.</p><div class="hero-line"><span class="hero-metric" id="heroProgress">Ta progression du jour</span><button class="hero-action" onclick="showPage('Settings');document.getElementById('premiumSection').scrollIntoView()">Découvrir la version complète</button></div></div>
 <div class="section green">
 <h2>💸 Business</h2>
 <div id="business"></div>
@@ -108,13 +139,13 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <div class="logo image-logo"><img src="./rush-affaires-icon.png" alt="Rush Affaires"></div>
 <div class="logo-text">
 <h1>Rush Affaires</h1>
-<p>Papiers, démarches et choses à faire</p>
+<p>Papiers, démarches et choses à faire</p><div class="brandline">par Sync 30 Numérique</div>
 </div>
 </div>
 
 <div class="affaires-toolbar">
 <button class="primary" onclick="openAffairForm()">➕ Ajouter une affaire</button>
-<div class="persist-chip">∞ Sans limite</div>
+<div class="persist-chip" id="affairsLimitLabel">10 gratuits</div>
 </div>
 
 <div class="section">
@@ -166,7 +197,7 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <div class="logo image-logo"><img src="./rush-courses-icon.png" alt="Courses"></div>
 <div class="logo-text">
 <h1>Courses</h1>
-<p>Liste, prix et total automatique</p>
+<p>Liste, prix et total automatique</p><div class="brandline">par Sync 30 Numérique</div>
 </div>
 </div>
 
@@ -221,23 +252,49 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <div class="logo" style="background:linear-gradient(135deg,#646464,#222)">⚙️</div>
 <div class="logo-text">
 <h1>Réglages</h1>
-<p>Application et mises à jour</p>
+<p>Application, version complète et mises à jour</p><div class="brandline">par Sync 30 Numérique</div>
 </div>
+</div>
+<div class="section premium-card" id="premiumSection">
+<div class="brand-overline">RUSH STUDIO COMPLET</div>
+<h2>Débloque ton organisation, sans limites</h2>
+<div class="premium-price" id="premiumPrice">0,99 € <span>achat à vie, sans abonnement</span></div>
+<div class="pro-state" id="premiumBadge">Version gratuite</div>
+<ul class="perks"><li>Affaires illimitées</li><li>Liste de courses illimitée</li><li>Toutes les fonctions actuelles et futures de cette version</li><li>Un seul paiement, achat restaurable</li></ul>
+<button class="primary" id="premiumBuyButton" onclick="purchasePremium()">Débloquer l'application complète · 0,99 €</button>
+<button onclick="restorePremium()">Restaurer mon achat</button>
+<div class="status" id="premiumStatus" aria-live="polite">Le paiement sécurisé est effectué par Google Play.</div>
 </div>
 <div class="section orange">
-<h2>⬆️ Mise à jour</h2>
-<div class="setting">
-<div><strong>Mise à jour automatique</strong><small>Vérifie les nouvelles versions au démarrage. Les tâches, affaires et courses restent enregistrées.</small></div>
-<label class="switch"><input type="checkbox" id="autoUpdate" onchange="setAutoUpdate(this.checked)"><span class="slider"></span></label>
+<h2>Mises à jour</h2>
+<p class="small-muted">Vérifie les nouvelles versions et lance leur installation directement depuis Rush Studio, avec le système officiel de Google Play. Tes données restent conservées.</p>
+<div class="version-line" style="margin-top:12px">Version installée : <strong id="installedVersion">2.2.0</strong></div>
+<button class="primary" onclick="checkForUpdate()">Vérifier les mises à jour</button>
+<button class="primary" id="completeUpdateButton" style="display:none" onclick="completeUpdate()">Installer et redémarrer</button>
+<div class="status" id="updateStatus" aria-live="polite"></div>
 </div>
-<div class="version-line">Version installée : <strong id="installedVersion">2.1.0</strong></div>
-<button class="primary" onclick="checkForUpdate()">🔎 Vérifier maintenant</button>
-<div class="status" id="updateStatus"></div>
+<div class="section">
+<h2>Nouveautés</h2>
+<div class="news-item"><b>Version 2.2</b> · Identité Sync 30 Numérique, interface repensée et préparation du paiement unique.</div>
+<div class="news-item">Tes listes, tâches et affaires restent enregistrées lors des mises à jour.</div>
+</div>
+<div class="section">
+<h2>Ton avis compte</h2>
+<p class="small-muted">Une idée ou un avis sur Rush Studio ? Partage ton retour sur sa fiche Google Play.</p>
+<button onclick="openReview()">Donner mon avis sur Google Play</button><div class="status" id="reviewStatus" aria-live="polite"></div>
+</div>
+<div class="section">
+<h2>À propos</h2>
+<p class="small-muted"><b>Rush Studio</b> · Développé par <b>Sync 30 Numérique</b>.<br>Organisation quotidienne, affaires et courses.</p>
+<div class="link-row"><button onclick="openOfficialSite()">Site de l'entreprise</button><button onclick="openPrivacyPolicy()">Confidentialité</button></div>
 </div>
 <div class="section">
 <h2>💾 Données</h2>
 <p style="opacity:.72;line-height:1.45">Rush Studio, Rush Affaires et Courses utilisent des stockages persistants séparés. Une mise à jour de l’application ne supprime pas tes données.</p>
 <button onclick="exportData()">Exporter une sauvegarde JSON</button>
+<button onclick="importBackup()">Restaurer une sauvegarde JSON</button>
+<input type="file" id="backupImportFile" accept=".json,application/json" style="display:none" onchange="importBackupFile(this)">
+<p class="small-muted">Pense à exporter tes données dans un dossier accessible avant toute désinstallation.</p>
 </div>
 </section>
 
@@ -247,9 +304,35 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <button class="nav-btn" id="navCourses" onclick="showPage('Courses')"><img class="nav-img" src="./rush-courses-icon.png" alt=""><span>Courses</span></button>
 <button class="nav-btn" id="navSettings" onclick="showPage('Settings')"><span class="nav-icon">⚙️</span><span>Réglages</span></button>
 </nav>
+<div class="brand-footer">Rush Studio · une application <b>Sync 30 Numérique</b></div>
 
 <script>
-const WEB_VERSION='2.1.0';
+const WEB_VERSION='2.2.0';
+// Activer uniquement après la première publication effective sur Google Play.
+function isPlayInstalled(){
+  if(!isAndroid())return false;
+  try{return window.RushAndroid.isPlayInstalled();}catch(e){return false;}
+}
+const FREE_AFFAIRS_LIMIT=10, FREE_COURSES_LIMIT=20;
+let premiumActive=false;
+function isPremium(){return !isAndroid() || premiumActive}
+function requirePremium(reason){if(isPremium())return true;showPage('Settings');document.getElementById('premiumSection').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('premiumStatus').textContent=reason+' — déblocage unique via Google Play.';return false}
+function refreshPremium(){const pro=isPremium();document.getElementById('premiumBadge').textContent=pro?'Version complète active':'Version gratuite';document.getElementById('premiumBuyButton').style.display=pro?'none':'block';document.getElementById('affairsLimitLabel').textContent=pro?'Sans limite':'10 gratuits';}
+function onPremiumStatus(payload){try{if(typeof payload==='string')payload=JSON.parse(payload);premiumActive=Boolean(payload.active);if(payload.price){document.getElementById('premiumPrice').firstChild.textContent=payload.price+' ';document.getElementById('premiumBuyButton').textContent='Débloquer l\'application complète · '+payload.price}if(payload.message)document.getElementById('premiumStatus').textContent=payload.message;refreshPremium();}catch(e){}}
+function purchasePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Paiement disponible dans l’application Android distribuée par Google Play.';return;}window.RushAndroid.purchasePremium()}
+function restorePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Restauration disponible dans l’application Android.';return;}window.RushAndroid.restorePremium()}
+function openReview(){
+  const status=document.getElementById('reviewStatus');
+  if(!isPlayInstalled()){
+    if(status)status.textContent='Les avis seront disponibles dès la publication de Rush Studio sur Google Play.';
+    return;
+  }
+  if(isAndroid())window.RushAndroid.openPlayListing();
+  else window.open('https://play.google.com/store/apps/details?id=com.chk.rushstudio','_blank');
+}
+function openOfficialSite(){openExternal('https://sync30.pntr.dev/')}
+function openPrivacyPolicy(){openExternal('https://sync30.pntr.dev/rush-studio-confidentialite.html')}
+function openExternal(url){if(isAndroid())window.RushAndroid.openExternal(url);else window.open(url,'_blank')}
 const routines={business:["Créer vidéo TikTok Shop","Poster vidéo produit","Répondre commentaires"],creative:["Créer vidéo musique","Poster extrait TikTok"],mental:["Duolingo 15 min","Réviser anglais"]};
 function loadJson(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){return fallback}}
 let data=loadJson('rushstudio',{});
@@ -271,7 +354,7 @@ function saveCourses(){localStorage.setItem('rushCourses',JSON.stringify(courses
 function renderTasks(id,type,color){const container=document.getElementById(id);container.innerHTML='';data[today][type].forEach((task,index)=>{const div=document.createElement('div');div.className='task '+color+(task.done?' completed':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=task.done;cb.onchange=()=>toggleTask(type,index);const span=document.createElement('span');span.textContent=task.text;div.appendChild(cb);div.appendChild(span);container.appendChild(div)})}
 function toggleTask(type,index){data[today][type][index].done=!data[today][type][index].done;save();render()}
 function addExtra(){const input=document.getElementById('extraInput');const value=input.value.trim();if(!value)return;data[today].extra.push({text:value,done:false});input.value='';save();render()}
-function updateProgress(){const all=[...data[today].business,...data[today].creative,...data[today].mental,...data[today].extra];const done=all.filter(t=>t.done).length;document.getElementById('progress').innerText=done+'/'+all.length+' tâches terminées'}
+function updateProgress(){const all=[...data[today].business,...data[today].creative,...data[today].mental,...data[today].extra];const done=all.filter(t=>t.done).length;document.getElementById('progress').innerText=done+'/'+all.length+' tâches terminées';document.getElementById('heroProgress').textContent=done+' / '+all.length+' tâches accomplies'}
 function updateStreaks(){let english=0,music=0,shop=0;Object.keys(data).forEach(day=>{const d=data[day];if(d.mental&&d.mental.some(t=>t.done))english++;if(d.creative&&d.creative.some(t=>t.done))music++;if(d.business&&d.business.some(t=>t.done))shop++});document.getElementById('english').innerText=english;document.getElementById('music').innerText=music;document.getElementById('shop').innerText=shop}
 
 function showPage(name){
@@ -296,6 +379,7 @@ function closeAffairForm(event){
 function addAffair(){
  const title=document.getElementById('affairTitle').value.trim();
  if(!title)return;
+ if(!isPremium() && affairs.filter(a=>!a.done).length>=FREE_AFFAIRS_LIMIT){requirePremium('Limite de 10 affaires actives atteinte');return;}
  affairs.unshift({id:Date.now(),title:title,category:document.getElementById('affairCategory').value,priority:document.getElementById('affairPriority').value,notes:document.getElementById('affairNotes').value.trim(),done:false,created:new Date().toISOString()});
  document.getElementById('affairTitle').value='';document.getElementById('affairNotes').value='';
  saveAffairs();renderAffairs();closeAffairForm();
@@ -357,6 +441,7 @@ function addCourse(){
 
  const parts=raw.split(/[,;\n]+/).map(v=>parseCourseToken(v,defaultQty)).filter(v=>v.name);
  if(!parts.length){showCourseFeedback('Aucun article valide détecté.');return}
+ if(!isPremium() && courses.length>=FREE_COURSES_LIMIT){requirePremium('Limite de 20 articles atteinte');return}
 
  parts.forEach((entry,index)=>{
    const key=normalizeCourseName(entry.name);
@@ -490,39 +575,55 @@ function renderCourses(){
  }
 }
 function isAndroid(){return typeof window.RushAndroid!=='undefined'}
+
 function refreshSettings(){
- const auto=document.getElementById('autoUpdate');
- if(isAndroid()){
-   try{auto.checked=window.RushAndroid.isAutoUpdateEnabled();document.getElementById('installedVersion').textContent=window.RushAndroid.getAppVersion()}catch(e){}
- }else{auto.checked=localStorage.getItem('rushAutoUpdate')!=='false';document.getElementById('installedVersion').textContent=WEB_VERSION}
+  document.getElementById('installedVersion').textContent=isAndroid()?window.RushAndroid.getAppVersion():WEB_VERSION;
+  refreshPremium();
 }
-function setAutoUpdate(enabled){localStorage.setItem('rushAutoUpdate',enabled?'true':'false');if(isAndroid()){try{window.RushAndroid.setAutoUpdateEnabled(enabled)}catch(e){}}}
-function reloadLiveUpdate(){
- return new Promise(resolve=>{
-   const old=document.getElementById('rushLiveUpdate');
-   if(old)old.remove();
-   const s=document.createElement('script');
-   s.id='rushLiveUpdate';
-   s.src='https://chasmet.github.io/rush-studio/live-update.js?ts='+Date.now();
-   s.onload=()=>resolve(true);
-   s.onerror=()=>resolve(false);
-   document.body.appendChild(s);
- });
+function checkForUpdate(){
+  const status=document.getElementById('updateStatus');
+  if(isAndroid()){
+    status.textContent='Vérification en cours…';
+    window.RushAndroid.checkForUpdate();
+  }else{
+    status.textContent='Les mises à jour intégrées sont disponibles uniquement dans Rush Studio installé depuis Google Play.';
+  }
 }
-async function checkForUpdate(){
- const status=document.getElementById('updateStatus');status.textContent='Vérification des mises à jour…';
- const liveOk=await reloadLiveUpdate();
- if(liveOk&&window.RUSH_LIVE_VERSION){status.textContent='Interface à jour ('+window.RUSH_LIVE_VERSION+'). Vérification de l’APK…';}
- else if(!liveOk){status.textContent='Interface locale active. Vérification de l’APK…';}
- if(isAndroid()){try{window.RushAndroid.checkForUpdate();status.textContent='Vérification lancée. Tu seras averti si une nouvelle APK est disponible.'}catch(e){status.textContent='Impossible de lancer la vérification.'}return}
- try{const r=await fetch('./version.json?ts='+Date.now(),{cache:'no-store'});const v=await r.json();if(v.version&&v.version!==WEB_VERSION){status.textContent='Nouvelle version '+v.version+' disponible. Recharge l’application pour l’appliquer.';if('serviceWorker' in navigator){const reg=await navigator.serviceWorker.getRegistration();if(reg)await reg.update()}}else{status.textContent='Tu as déjà la dernière version.'}}catch(e){status.textContent='Vérification impossible pour le moment.'}
+function completeUpdate(){
+  if(!isAndroid())return;
+  const btn=document.getElementById('completeUpdateButton');
+  if(btn)btn.style.display='none';
+  window.RushAndroid.completeUpdate();
+}
+function importBackup(){
+ if(isAndroid()){window.RushAndroid.importBackup();return;}
+ document.getElementById('backupImportFile').click();
+}
+async function importBackupFile(input){
+ try{if(input.files&&input.files[0])onAndroidBackupImported(await input.files[0].text());}catch(e){alert('Sauvegarde non valide : '+e.message)}finally{input.value=''}
+}
+function onAndroidBackupImported(raw){
+ try{
+  const backup=JSON.parse(raw);
+  if(!backup||typeof backup.rushstudio!=='object'||Array.isArray(backup.rushstudio)||!Array.isArray(backup.rushAffaires)||!Array.isArray(backup.rushCourses))throw Error('Format incompatible');
+  if(!confirm('Restaurer cette sauvegarde ? Les données actuelles seront remplacées.'))return;
+  localStorage.setItem('rushstudio',JSON.stringify(backup.rushstudio));
+  localStorage.setItem('rushAffaires',JSON.stringify(backup.rushAffaires));
+  localStorage.setItem('rushCourses',JSON.stringify(backup.rushCourses));
+  localStorage.setItem('rushCoursesBudget',String(Number(backup.rushCoursesBudget)||0));
+  location.reload();
+ }catch(e){alert('Import refusé : '+e.message)}
 }
 function exportData(){
  const payload=JSON.stringify({exportedAt:new Date().toISOString(),rushstudio:data,rushAffaires:affairs,rushCourses:courses,rushCoursesBudget:coursesBudget},null,2);
  if(isAndroid()&&window.RushAndroid.exportBackup){try{window.RushAndroid.exportBackup(payload);return}catch(e){}}
  const blob=new Blob([payload],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='rush-studio-sauvegarde.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
-function onAndroidUpdateStatus(message){document.getElementById('updateStatus').textContent=message;showPage('Settings')}
+function onAndroidUpdateStatus(message,ready){
+  const status=document.getElementById('updateStatus'),button=document.getElementById('completeUpdateButton');
+  status.textContent=message;
+  if(button)button.style.display=ready?'block':'none';
+}
 
 function render(){renderTasks('business','business','green');renderTasks('creative','creative','purple');renderTasks('mental','mental','blue');renderTasks('extra','extra','orange');updateProgress();updateStreaks()}
 render();renderAffairs();renderCourses();save();saveCourses();refreshSettings();
@@ -534,14 +635,12 @@ const affairTitleInput=document.getElementById('affairTitle');
 if(affairTitleInput)affairTitleInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addAffair()}});
 const savedPage=localStorage.getItem('rushLastPage');
 if(['Studio','Affaires','Courses','Settings'].includes(savedPage))showPage(savedPage);
-if(localStorage.getItem('rushAutoUpdate')!=='false'){
- setTimeout(()=>reloadLiveUpdate(),500);
-}
+
 
 if('serviceWorker' in navigator&&!location.href.startsWith('file:')){
  navigator.serviceWorker.register('./service-worker.js').then(reg=>{if(localStorage.getItem('rushAutoUpdate')!=='false')reg.update()}).catch(()=>{});
 }
 </script>
-<script id="rushLiveUpdate" src="https://chasmet.github.io/rush-studio/live-update.js"></script>
+<!-- No remote JavaScript: the Android payment bridge only accepts bundled HTML. -->
 </body>
 </html>

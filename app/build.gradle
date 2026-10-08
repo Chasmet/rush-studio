@@ -7,20 +7,20 @@ def ciVersionName = providers.gradleProperty('versionName').orNull
 
 android {
     namespace 'com.chk.rushstudio'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.chk.rushstudio"
-        minSdk 21
-        targetSdk 34
-        versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 21000
-        versionName ciVersionName != null ? ciVersionName : "2.1.0"
+        minSdk 24
+        targetSdk 36
+        versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 22000
+        versionName ciVersionName != null ? ciVersionName : "2.2.0"
     }
 
     signingConfigs {
         release {
             def ks = System.getenv("ANDROID_KEYSTORE_FILE")
-            if (ks != null && !ks.isEmpty()) {
+            if (ks != null && !ks.isEmpty() && file(ks).isFile() && System.getenv("ANDROID_KEYSTORE_PASSWORD") && System.getenv("ANDROID_KEY_ALIAS") && System.getenv("ANDROID_KEY_PASSWORD")) {
                 storeFile file(ks)
                 storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
@@ -36,7 +36,7 @@ android {
         }
         release {
             minifyEnabled false
-            if (System.getenv("ANDROID_KEYSTORE_FILE")) {
+            if (System.getenv("ANDROID_KEYSTORE_FILE") && file(System.getenv("ANDROID_KEYSTORE_FILE")).isFile()) {
                 signingConfig signingConfigs.release
             }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -69,5 +69,9 @@ tasks.register("syncWebAssets", Copy) {
 preBuild.dependsOn(syncWebAssets)
 
 dependencies {
-    implementation 'androidx.core:core:1.13.1'
+    // Aligner toutes les variantes Kotlin transitives (Billing / AndroidX).
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.24')
+    implementation 'androidx.core:core:1.15.0'
+    implementation 'com.android.billingclient:billing:8.3.0'
+    implementation 'com.google.android.play:app-update:2.1.0'
 }
