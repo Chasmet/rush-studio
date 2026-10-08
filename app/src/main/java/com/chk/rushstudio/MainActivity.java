@@ -178,6 +178,15 @@ public class MainActivity extends Activity {
             runOnUiThread(() -> playUpdateManager.completeUpdate());
         }
 
+        @JavascriptInterface public boolean isPlayInstalled() {
+            try {
+                String installer = getPackageManager().getInstallerPackageName(getPackageName());
+                return !BuildConfig.DEBUG && "com.android.vending".equals(installer);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
         @JavascriptInterface public void openPlayListing() {
             runOnUiThread(() -> openExternalUrl("https://play.google.com/store/apps/details?id=" + getPackageName()));
         }
