@@ -30,6 +30,7 @@ public final class PremiumManager implements PurchasesUpdatedListener {
 
     public PremiumManager(MainActivity activity) {
         this.activity = activity;
+        this.premium = activity.getSharedPreferences("rush_settings", MainActivity.MODE_PRIVATE).getBoolean("verified_premium", false);
         billingClient = BillingClient.newBuilder(activity)
                 .setListener(this)
                 .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
@@ -161,6 +162,7 @@ public final class PremiumManager implements PurchasesUpdatedListener {
             }
         }
         premium = owned;
+        activity.getSharedPreferences("rush_settings", MainActivity.MODE_PRIVATE).edit().putBoolean("verified_premium", owned).apply();
         emitStatus(owned ? "Version complète activée. Merci pour ton achat !" :
                 restored ? "Aucun achat associé à ce compte Google Play." : "");
     }
