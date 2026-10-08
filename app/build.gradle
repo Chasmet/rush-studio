@@ -69,6 +69,8 @@ tasks.register("syncWebAssets", Copy) {
 preBuild.dependsOn(syncWebAssets)
 
 dependencies {
+    // Aligner toutes les variantes Kotlin transitives (Billing / AndroidX).
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.24')
     implementation 'androidx.core:core:1.15.0'
     implementation 'com.android.billingclient:billing:8.3.0'
 }
