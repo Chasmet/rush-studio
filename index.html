@@ -309,7 +309,10 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <script>
 const WEB_VERSION='2.2.0';
 // Activer uniquement après la première publication effective sur Google Play.
-const PLAY_STORE_PUBLISHED=false;
+function isPlayInstalled(){
+  if(!isAndroid())return false;
+  try{return window.RushAndroid.isPlayInstalled();}catch(e){return false;}
+}
 const FREE_AFFAIRS_LIMIT=10, FREE_COURSES_LIMIT=20;
 let premiumActive=false;
 function isPremium(){return !isAndroid() || premiumActive}
@@ -320,7 +323,7 @@ function purchasePremium(){if(!isAndroid()){document.getElementById('premiumStat
 function restorePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Restauration disponible dans l’application Android.';return;}window.RushAndroid.restorePremium()}
 function openReview(){
   const status=document.getElementById('reviewStatus');
-  if(!PLAY_STORE_PUBLISHED){
+  if(!isPlayInstalled()){
     if(status)status.textContent='Les avis seront disponibles dès la publication de Rush Studio sur Google Play.';
     return;
   }
