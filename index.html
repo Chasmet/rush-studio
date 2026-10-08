@@ -258,7 +258,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="section premium-card" id="premiumSection">
 <div class="brand-overline">RUSH STUDIO COMPLET</div>
 <h2>Débloque ton organisation, sans limites</h2>
-<div class="premium-price" id="premiumPrice">0,99 € <span>une fois, sans abonnement</span></div>
+<div class="premium-price" id="premiumPrice">0,99 € <span>achat à vie, sans abonnement</span></div>
 <div class="pro-state" id="premiumBadge">Version gratuite</div>
 <ul class="perks"><li>Affaires illimitées</li><li>Liste de courses illimitée</li><li>Toutes les fonctions actuelles et futures de cette version</li><li>Un seul paiement, achat restaurable</li></ul>
 <button class="primary" id="premiumBuyButton" onclick="purchasePremium()">Débloquer l'application complète · 0,99 €</button>
@@ -291,6 +291,9 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <h2>💾 Données</h2>
 <p style="opacity:.72;line-height:1.45">Rush Studio, Rush Affaires et Courses utilisent des stockages persistants séparés. Une mise à jour de l’application ne supprime pas tes données.</p>
 <button onclick="exportData()">Exporter une sauvegarde JSON</button>
+<button onclick="importBackup()">Restaurer une sauvegarde JSON</button>
+<input type="file" id="backupImportFile" accept=".json,application/json" style="display:none" onchange="importBackupFile(this)">
+<p class="small-muted">Pense à exporter tes données dans un dossier accessible avant toute désinstallation.</p>
 </div>
 </section>
 
@@ -568,6 +571,25 @@ function checkForUpdate(){
   status.textContent='Ouverture de Google Play…';
   if(isAndroid())window.RushAndroid.openPlayListing();
   else window.open('https://play.google.com/store/apps/details?id=com.chk.rushstudio','_blank');
+}
+function importBackup(){
+ if(isAndroid()){window.RushAndroid.importBackup();return;}
+ document.getElementById('backupImportFile').click();
+}
+async function importBackupFile(input){
+ try{if(input.files&&input.files[0])onAndroidBackupImported(await input.files[0].text());}catch(e){alert('Sauvegarde non valide : '+e.message)}finally{input.value=''}
+}
+function onAndroidBackupImported(raw){
+ try{
+  const backup=JSON.parse(raw);
+  if(!backup||typeof backup.rushstudio!=='object'||Array.isArray(backup.rushstudio)||!Array.isArray(backup.rushAffaires)||!Array.isArray(backup.rushCourses))throw Error('Format incompatible');
+  if(!confirm('Restaurer cette sauvegarde ? Les données actuelles seront remplacées.'))return;
+  localStorage.setItem('rushstudio',JSON.stringify(backup.rushstudio));
+  localStorage.setItem('rushAffaires',JSON.stringify(backup.rushAffaires));
+  localStorage.setItem('rushCourses',JSON.stringify(backup.rushCourses));
+  localStorage.setItem('rushCoursesBudget',String(Number(backup.rushCoursesBudget)||0));
+  location.reload();
+ }catch(e){alert('Import refusé : '+e.message)}
 }
 function exportData(){
  const payload=JSON.stringify({exportedAt:new Date().toISOString(),rushstudio:data,rushAffaires:affairs,rushCourses:courses,rushCoursesBudget:coursesBudget},null,2);
