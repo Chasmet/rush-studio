@@ -1,132 +1,89 @@
-name: Android APK
+name: Rush Studio Android · APK test et AAB Google Play
 
 on:
   push:
-    branches: [ main ]
+    branches: [main, feat/sync30-playstore-20261008]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "17 4 */5 * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: rush-studio-android-main
+  group: rush-studio-android-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      RUSH_KEYSTORE: /home/runner/.rush-signing/rush-studio.jks
-      RUSH_STORE_PASSWORD: rush-studio-auto-update-2026
-      RUSH_KEY_ALIAS: rushstudio
-      RUSH_KEY_PASSWORD: rush-studio-auto-update-2026
+    timeout-minutes: 35
     steps:
-      - name: Checkout
+      - name: Checkout du code
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Restore permanent signing identity
-        id: signing-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.rush-signing/rush-studio.jks
-          key: rush-studio-signing-v1
+      - name: Android SDK 36
+        uses: android-actions/setup-android@v3
+      - name: Installer la plateforme Android 36
+        run: sdkmanager --install "platforms;android-36"
 
-      - name: Create permanent signing identity automatically
-        if: steps.signing-cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          mkdir -p "$HOME/.rush-signing"
-          keytool -genkeypair -v \
-            -keystore "$RUSH_KEYSTORE" \
-            -storepass "$RUSH_STORE_PASSWORD" \
-            -alias "$RUSH_KEY_ALIAS" \
-            -keypass "$RUSH_KEY_PASSWORD" \
-            -keyalg RSA \
-            -keysize 4096 \
-            -validity 36500 \
-            -dname "CN=Rush Studio, OU=Auto Update, O=CHK, L=Paris, C=FR"
-
-      - name: Verify permanent signing identity
-        id: signing
-        shell: bash
-        run: |
-          test -s "$RUSH_KEYSTORE"
-          FINGERPRINT="$(keytool -list -v \
-            -keystore "$RUSH_KEYSTORE" \
-            -storepass "$RUSH_STORE_PASSWORD" \
-            -alias "$RUSH_KEY_ALIAS" | sed -n 's/.*SHA256: //p' | head -n1)"
-          test -n "$FINGERPRINT"
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "### Rush Studio signing identity" >> "$GITHUB_STEP_SUMMARY"
-          echo "SHA-256: \`$FINGERPRINT\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "The signing identity is generated and reused automatically; no manual key is required." >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Keep signing identity alive
-        if: github.event_name == 'schedule'
-        run: echo "Signing identity cache refreshed."
-
-      - name: Compute version
-        if: github.event_name != 'schedule'
-        id: version
-        shell: bash
-        run: |
-          echo "name=2.1.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "code=$((21000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
-
-      - name: Prepare Gradle
-        if: github.event_name != 'schedule'
-        run: chmod +x gradlew
-
-      - name: Validate PNG icons
-        if: github.event_name != 'schedule'
+      - name: Contrôler les icônes originales
         run: python3 scripts/check_png.py
 
-      - name: Build debug APK
-        if: github.event_name != 'schedule'
-        run: ./gradlew :app:assembleDebug -PversionName=${{ steps.version.outputs.name }} -PversionCode=${{ steps.version.outputs.code }}
+      - name: Préparer Gradle
+        run: chmod +x gradlew
 
-      - name: Upload debug artifact
-        if: github.event_name != 'schedule'
-        uses: actions/upload-artifact@v4
-        with:
-          name: rush-studio-debug-${{ steps.version.outputs.name }}
-          path: app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Build signed stable APK
-        if: github.event_name != 'schedule'
+      - name: Préparer la version et la signature
         env:
-          ANDROID_KEYSTORE_FILE: ${{ env.RUSH_KEYSTORE }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ env.RUSH_STORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ env.RUSH_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ env.RUSH_KEY_PASSWORD }}
-        run: ./gradlew :app:assembleRelease -PversionName=${{ steps.version.outputs.name }} -PversionCode=${{ steps.version.outputs.code }}
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PWD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PWD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "APP_VERSION=2.2.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "APP_CODE=$((22000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$STORE_PWD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PWD" ]; then
+            printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/rush-studio-upload.jks"
+            chmod 600 "$RUNNER_TEMP/rush-studio-upload.jks"
+            echo "UPLOAD_SIGNED=true" >> "$GITHUB_ENV"
+          else
+            echo "UPLOAD_SIGNED=false" >> "$GITHUB_ENV"
+            echo "::notice::AAB sans signature : renseigner les quatre secrets Android pour publier."
+          fi
 
-      - name: Rename stable APK
-        if: github.event_name != 'schedule'
-        shell: bash
-        run: cp app/build/outputs/apk/release/app-release.apk rush-studio-${{ steps.version.outputs.name }}.apk
+      - name: Construire APK debug et AAB release
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/rush-studio-upload.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon :app:assembleDebug :app:bundleRelease \
+            -PversionCode="$APP_CODE" -PversionName="$APP_VERSION"
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          test -s app/build/outputs/bundle/release/app-release.aab
 
-      - name: Upload stable APK artifact
-        if: github.event_name != 'schedule'
+      - name: Conserver APK de test et AAB
         uses: actions/upload-artifact@v4
         with:
-          name: rush-studio-stable-${{ steps.version.outputs.name }}
-          path: rush-studio-${{ steps.version.outputs.name }}.apk
+          name: rush-studio-android-${{ github.run_number }}
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/bundle/release/app-release.aab
+          retention-days: 7
 
-      - name: Create GitHub Release
-        if: github.event_name != 'schedule'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.name }}
-          name: Rush Studio v${{ steps.version.outputs.name }}
-          generate_release_notes: true
-          make_latest: true
-          files: rush-studio-${{ steps.version.outputs.name }}.apk
+      - name: Résumé publication
+        run: |
+          echo "### Rush Studio $APP_VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Cible Google Play : API 36" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Produit intégré attendu : rush_studio_full (achat unique 0,99 €)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- AAB signé : $UPLOAD_SIGNED" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$UPLOAD_SIGNED" != true ]; then
+            echo "- ⚠️ Ne pas importer l'AAB non signé dans Play Console." >> "$GITHUB_STEP_SUMMARY"
+          fi
