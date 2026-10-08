@@ -73,4 +73,5 @@ dependencies {
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.24')
     implementation 'androidx.core:core:1.15.0'
     implementation 'com.android.billingclient:billing:8.3.0'
+    implementation 'com.google.android.play:app-update:2.1.0'
 }
