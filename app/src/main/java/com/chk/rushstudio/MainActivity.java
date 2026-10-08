@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -17,6 +18,9 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -24,6 +28,9 @@ public class MainActivity extends Activity {
     private WebView webView;
     private PremiumManager premiumManager;
     private SharedPreferences prefs;
+    private static final int REQUEST_EXPORT = 7401;
+    private static final int REQUEST_IMPORT = 7402;
+    private String pendingExportJson;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +105,45 @@ public class MainActivity extends Activity {
                 "if(window.onPremiumStatus)window.onPremiumStatus(" + payload + ");", null));
     }
 
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        Uri uri = data.getData();
+        if (requestCode == REQUEST_EXPORT) {
+            String toWrite = pendingExportJson;
+            pendingExportJson = null;
+            if (toWrite == null) return;
+            new Thread(() -> {
+                try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                    if (out == null) throw new IllegalStateException("Document inaccessible");
+                    out.write(toWrite.getBytes(StandardCharsets.UTF_8));
+                    runOnUiThread(() -> Toast.makeText(this, "Sauvegarde exportée", Toast.LENGTH_SHORT).show());
+                } catch (Exception e) {
+                    runOnUiThread(() -> Toast.makeText(this, "Export impossible", Toast.LENGTH_SHORT).show());
+                }
+            }).start();
+        } else if (requestCode == REQUEST_IMPORT) {
+            new Thread(() -> {
+                try (InputStream in = getContentResolver().openInputStream(uri)) {
+                    if (in == null) throw new IllegalStateException("Document inaccessible");
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[8192];
+                    int n;
+                    while ((n = in.read(buffer)) != -1) {
+                        bytes.write(buffer, 0, n);
+                        if (bytes.size() > 2000000) throw new IllegalStateException("Fichier trop volumineux");
+                    }
+                    String json = bytes.toString("UTF-8");
+                    new JSONObject(json); // vérification JSON avant la passerelle WebView
+                    runOnUiThread(() -> webView.evaluateJavascript(
+                            "if(window.onAndroidBackupImported)onAndroidBackupImported(" + JSONObject.quote(json) + ");", null));
+                } catch (Exception e) {
+                    runOnUiThread(() -> Toast.makeText(this, "Sauvegarde invalide", Toast.LENGTH_SHORT).show());
+                }
+            }).start();
+        }
+    }
+
     public final class AndroidBridge {
         @JavascriptInterface public String getAppVersion() { return BuildConfig.VERSION_NAME; }
 
@@ -122,22 +168,24 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface public void exportBackup(String json) {
-            // Export strictement local. Ne partage pas le contenu avec un serveur.
             if (json == null || json.length() > 2000000) return;
-            new Thread(() -> {
-                try {
-                    File dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-                    if (dir == null) throw new IllegalStateException("Stockage indisponible");
-                    if (!dir.exists() && !dir.mkdirs()) throw new IllegalStateException("Création impossible");
-                    File out = new File(dir, "rush-studio-sauvegarde.json");
-                    try (FileOutputStream fos = new FileOutputStream(out)) {
-                        fos.write(json.getBytes(StandardCharsets.UTF_8));
-                    }
-                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Sauvegarde créée dans Documents de Rush Studio", Toast.LENGTH_LONG).show());
-                } catch (Exception e) {
-                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Sauvegarde impossible", Toast.LENGTH_SHORT).show());
-                }
-            }).start();
+            runOnUiThread(() -> {
+                pendingExportJson = json;
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("application/json");
+                intent.putExtra(Intent.EXTRA_TITLE, "rush-studio-sauvegarde.json");
+                startActivityForResult(intent, REQUEST_EXPORT);
+            });
+        }
+
+        @JavascriptInterface public void importBackup() {
+            runOnUiThread(() -> {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("application/json");
+                startActivityForResult(intent, REQUEST_IMPORT);
+            });
         }
     }
 }
