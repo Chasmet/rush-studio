@@ -24,6 +24,7 @@ public final class PremiumManager implements PurchasesUpdatedListener {
     private ProductDetails productDetails;
     private ProductDetails.OneTimePurchaseOfferDetails selectedOffer;
     private boolean connected = false;
+    private boolean connecting = false;
     private boolean premium = false;
     private String price = "0,99 €";
 
@@ -36,13 +37,16 @@ public final class PremiumManager implements PurchasesUpdatedListener {
     }
 
     public void connect() {
+        if (connecting) return;
         if (connected || billingClient.isReady()) {
             connected = true;
             refreshPurchases(false);
             return;
         }
+        connecting = true;
         billingClient.startConnection(new BillingClientStateListener() {
             @Override public void onBillingSetupFinished(BillingResult result) {
+                connecting = false;
                 if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     connected = true;
                     queryProduct();
@@ -53,6 +57,7 @@ public final class PremiumManager implements PurchasesUpdatedListener {
             }
             @Override public void onBillingServiceDisconnected() {
                 connected = false;
+                connecting = false;
                 emitStatus("Connexion Google Play interrompue.");
             }
         });
@@ -76,8 +81,11 @@ public final class PremiumManager implements PurchasesUpdatedListener {
             List<ProductDetails.OneTimePurchaseOfferDetails> offers = productDetails.getOneTimePurchaseOfferDetailsList();
             if (offers != null && !offers.isEmpty()) {
                 selectedOffer = offers.get(0);
-                price = selectedOffer.getFormattedPrice();
+            } else {
+                // Compatibilité avec les produits Google Play à offre unique.
+                selectedOffer = productDetails.getOneTimePurchaseOfferDetails();
             }
+            if (selectedOffer != null) price = selectedOffer.getFormattedPrice();
             emitStatus("");
         });
     }
@@ -95,7 +103,7 @@ public final class PremiumManager implements PurchasesUpdatedListener {
         }
         BillingFlowParams.ProductDetailsParams detailsParams =
                 BillingFlowParams.ProductDetailsParams.newBuilder()
-                .setProductDetails(productDetails)
+                 .setProductDetails(productDetails)
                 .setOfferToken(selectedOffer.getOfferToken())
                 .build();
         BillingFlowParams flowParams = BillingFlowParams.newBuilder()
@@ -126,6 +134,8 @@ public final class PremiumManager implements PurchasesUpdatedListener {
     @Override public void onPurchasesUpdated(BillingResult result, List<Purchase> purchases) {
         if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
             processPurchases(purchases, false);
+        } else if (result.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            refreshPurchases(true);
         } else if (result.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
             emitStatus("Achat annulé, aucun prélèvement effectué.");
         } else {
