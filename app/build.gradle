@@ -20,7 +20,7 @@ android {
     signingConfigs {
         release {
             def ks = System.getenv("ANDROID_KEYSTORE_FILE")
-            if (ks != null && !ks.isEmpty()) {
+            if (ks != null && !ks.isEmpty() && file(ks).isFile() && System.getenv("ANDROID_KEYSTORE_PASSWORD") && System.getenv("ANDROID_KEY_ALIAS") && System.getenv("ANDROID_KEY_PASSWORD")) {
                 storeFile file(ks)
                 storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
@@ -36,7 +36,7 @@ android {
         }
         release {
             minifyEnabled false
-            if (System.getenv("ANDROID_KEYSTORE_FILE")) {
+            if (System.getenv("ANDROID_KEYSTORE_FILE") && file(System.getenv("ANDROID_KEYSTORE_FILE")).isFile()) {
                 signingConfig signingConfigs.release
             }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
