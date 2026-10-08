@@ -55,7 +55,7 @@ Le tarif affiché dans l'interface est indicatif jusqu'à disponibilité du prod
 ## Publication — contrôle obligatoire
 
 - Préparer icône **512x512 PNG originale**, bannière, captures d'écran Android, courte description et description complète.
-- Politique de confidentialité : https://sync30.pntr.dev/confidentialite.html ; relire et adapter à **Rush Studio** et aux informations Google Play Billing si nécessaire.
+- Politique de confidentialité : https://sync30.pntr.dev/rush-studio-confidentialite.html ; relire et adapter à **Rush Studio** et aux informations Google Play Billing si nécessaire.
 - Compléter les rubriques Google Play : sécurité des données, contenu, audience, accès, publicités, catégorie, coordonnées, achats intégrés.
 - Tester sur un téléphone : listes, état gratuit/premium, mise à jour Play, export/import JSON, affichage et consentements.
 - Tester particulièrement la migration depuis un APK installé manuellement : une signature Android différente peut obliger à désinstaller l'ancienne application, avec risque de perte des données locales. **Copier les sauvegardes en dehors du dossier privé de l'application avant toute désinstallation.**
