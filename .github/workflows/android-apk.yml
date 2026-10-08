@@ -3,8 +3,15 @@ name: Rush Studio Android · APK test et AAB Google Play
 on:
   push:
     branches: [main, feat/sync30-playstore-20261008]
-  pull_request:
-    branches: [main]
+    paths:
+      - "app/**"
+      - "index.html"
+      - "rush-*.png"
+      - "build.gradle"
+      - "settings.gradle"
+      - "gradle/**"
+      - "gradlew"
+      - ".github/workflows/android-apk.yml"
   workflow_dispatch:
 
 permissions:
