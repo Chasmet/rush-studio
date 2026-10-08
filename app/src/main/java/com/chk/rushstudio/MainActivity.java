@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 public class MainActivity extends Activity {
     private WebView webView;
     private PremiumManager premiumManager;
+    private PlayUpdateManager playUpdateManager;
     private SharedPreferences prefs;
     private static final int REQUEST_EXPORT = 7401;
     private static final int REQUEST_IMPORT = 7402;
@@ -67,6 +68,7 @@ public class MainActivity extends Activity {
         // Ne charger que le HTML livré dans l'application. Aucun JS distant n'est autorisé.
         webView.addJavascriptInterface(new AndroidBridge(), "RushAndroid");
         premiumManager = new PremiumManager(this);
+        playUpdateManager = new PlayUpdateManager(this);
         webView.loadUrl("file:///android_asset/www/index.html");
         premiumManager.connect();
     }
@@ -74,10 +76,12 @@ public class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         if (premiumManager != null) premiumManager.refreshPurchases(false);
+        if (playUpdateManager != null) playUpdateManager.checkDownloadedUpdate();
     }
 
     @Override protected void onDestroy() {
         if (premiumManager != null) premiumManager.destroy();
+        if (playUpdateManager != null) playUpdateManager.destroy();
         if (webView != null) {
             webView.removeJavascriptInterface("RushAndroid");
             webView.destroy();
@@ -105,8 +109,19 @@ public class MainActivity extends Activity {
                 "if(window.onPremiumStatus)window.onPremiumStatus(" + payload + ");", null));
     }
 
+    public void notifyUpdate(String message, boolean ready) {
+        if (webView == null) return;
+        String json = JSONObject.quote(message);
+        runOnUiThread(() -> webView.evaluateJavascript(
+            "if(window.onAndroidUpdateStatus)window.onAndroidUpdateStatus(" + json + "," + ready + ");", null));
+    }
+
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PlayUpdateManager.REQUEST_UPDATE) {
+            if (playUpdateManager != null) playUpdateManager.onUpdateResult(resultCode);
+            return;
+        }
         if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
         Uri uri = data.getData();
         if (requestCode == REQUEST_EXPORT) {
@@ -153,6 +168,14 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface public void restorePremium() {
             runOnUiThread(() -> premiumManager.refreshPurchases(true));
+        }
+
+        @JavascriptInterface public void checkForUpdate() {
+            runOnUiThread(() -> playUpdateManager.checkForUpdate());
+        }
+
+        @JavascriptInterface public void completeUpdate() {
+            runOnUiThread(() -> playUpdateManager.completeUpdate());
         }
 
         @JavascriptInterface public void openPlayListing() {
