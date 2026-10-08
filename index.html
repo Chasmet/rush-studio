@@ -317,7 +317,7 @@ function purchasePremium(){if(!isAndroid()){document.getElementById('premiumStat
 function restorePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Restauration disponible dans l’application Android.';return;}window.RushAndroid.restorePremium()}
 function openReview(){if(isAndroid())window.RushAndroid.openPlayListing();else window.open('https://play.google.com/store/apps/details?id=com.chk.rushstudio','_blank')}
 function openOfficialSite(){openExternal('https://sync30.pntr.dev/')}
-function openPrivacyPolicy(){openExternal('https://sync30.pntr.dev/confidentialite.html')}
+function openPrivacyPolicy(){openExternal('https://sync30.pntr.dev/rush-studio-confidentialite.html')}
 function openExternal(url){if(isAndroid())window.RushAndroid.openExternal(url);else window.open(url,'_blank')}
 const routines={business:["Créer vidéo TikTok Shop","Poster vidéo produit","Répondre commentaires"],creative:["Créer vidéo musique","Poster extrait TikTok"],mental:["Duolingo 15 min","Réviser anglais"]};
 function loadJson(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){return fallback}}
