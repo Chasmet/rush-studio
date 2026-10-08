@@ -280,7 +280,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="section">
 <h2>Ton avis compte</h2>
 <p class="small-muted">Une idée ou un avis sur Rush Studio ? Partage ton retour sur sa fiche Google Play.</p>
-<button onclick="openReview()">Donner mon avis sur Google Play</button>
+<button onclick="openReview()">Donner mon avis sur Google Play</button><div class="status" id="reviewStatus" aria-live="polite"></div>
 </div>
 <div class="section">
 <h2>À propos</h2>
@@ -307,6 +307,8 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 
 <script>
 const WEB_VERSION='2.2.0';
+// Activer uniquement après la première publication effective sur Google Play.
+const PLAY_STORE_PUBLISHED=false;
 const FREE_AFFAIRS_LIMIT=10, FREE_COURSES_LIMIT=20;
 let premiumActive=false;
 function isPremium(){return !isAndroid() || premiumActive}
@@ -315,7 +317,15 @@ function refreshPremium(){const pro=isPremium();document.getElementById('premium
 function onPremiumStatus(payload){try{if(typeof payload==='string')payload=JSON.parse(payload);premiumActive=Boolean(payload.active);if(payload.price){document.getElementById('premiumPrice').firstChild.textContent=payload.price+' ';document.getElementById('premiumBuyButton').textContent='Débloquer l\'application complète · '+payload.price}if(payload.message)document.getElementById('premiumStatus').textContent=payload.message;refreshPremium();}catch(e){}}
 function purchasePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Paiement disponible dans l’application Android distribuée par Google Play.';return;}window.RushAndroid.purchasePremium()}
 function restorePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Restauration disponible dans l’application Android.';return;}window.RushAndroid.restorePremium()}
-function openReview(){if(isAndroid())window.RushAndroid.openPlayListing();else window.open('https://play.google.com/store/apps/details?id=com.chk.rushstudio','_blank')}
+function openReview(){
+  const status=document.getElementById('reviewStatus');
+  if(!PLAY_STORE_PUBLISHED){
+    if(status)status.textContent='Les avis seront disponibles dès la publication de Rush Studio sur Google Play.';
+    return;
+  }
+  if(isAndroid())window.RushAndroid.openPlayListing();
+  else window.open('https://play.google.com/store/apps/details?id=com.chk.rushstudio','_blank');
+}
 function openOfficialSite(){openExternal('https://sync30.pntr.dev/')}
 function openPrivacyPolicy(){openExternal('https://sync30.pntr.dev/rush-studio-confidentialite.html')}
 function openExternal(url){if(isAndroid())window.RushAndroid.openExternal(url);else window.open(url,'_blank')}
@@ -568,6 +578,10 @@ function refreshSettings(){
 }
 function checkForUpdate(){
   const status=document.getElementById('updateStatus');
+  if(!PLAY_STORE_PUBLISHED){
+    status.textContent='Version de test installée. Les mises à jour Google Play seront disponibles après la première publication de Rush Studio.';
+    return;
+  }
   status.textContent='Ouverture de Google Play…';
   if(isAndroid())window.RushAndroid.openPlayListing();
   else window.open('https://play.google.com/store/apps/details?id=com.chk.rushstudio','_blank');
