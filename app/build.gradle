@@ -7,12 +7,12 @@ def ciVersionName = providers.gradleProperty('versionName').orNull
 
 android {
     namespace 'com.chk.rushstudio'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.chk.rushstudio"
         minSdk 21
-        targetSdk 34
+        targetSdk 36
         versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 21000
         versionName ciVersionName != null ? ciVersionName : "2.1.0"
     }
