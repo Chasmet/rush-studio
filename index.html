@@ -267,9 +267,10 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 </div>
 <div class="section orange">
 <h2>Mises à jour</h2>
-<p class="small-muted">Les nouvelles versions Android sont distribuées par Google Play. Active les mises à jour automatiques dans le Play Store pour ne rien manquer.</p>
+<p class="small-muted">Vérifie les nouvelles versions et lance leur installation directement depuis Rush Studio, avec le système officiel de Google Play. Tes données restent conservées.</p>
 <div class="version-line" style="margin-top:12px">Version installée : <strong id="installedVersion">2.2.0</strong></div>
-<button class="primary" onclick="checkForUpdate()">Ouvrir Google Play pour mettre à jour</button>
+<button class="primary" onclick="checkForUpdate()">Vérifier les mises à jour</button>
+<button class="primary" id="completeUpdateButton" style="display:none" onclick="completeUpdate()">Installer et redémarrer</button>
 <div class="status" id="updateStatus" aria-live="polite"></div>
 </div>
 <div class="section">
@@ -578,13 +579,18 @@ function refreshSettings(){
 }
 function checkForUpdate(){
   const status=document.getElementById('updateStatus');
-  if(!PLAY_STORE_PUBLISHED){
-    status.textContent='Version de test installée. Les mises à jour Google Play seront disponibles après la première publication de Rush Studio.';
-    return;
+  if(isAndroid()){
+    status.textContent='Vérification en cours…';
+    window.RushAndroid.checkForUpdate();
+  }else{
+    status.textContent='Les mises à jour intégrées sont disponibles uniquement dans Rush Studio installé depuis Google Play.';
   }
-  status.textContent='Ouverture de Google Play…';
-  if(isAndroid())window.RushAndroid.openPlayListing();
-  else window.open('https://play.google.com/store/apps/details?id=com.chk.rushstudio','_blank');
+}
+function completeUpdate(){
+  if(!isAndroid())return;
+  const btn=document.getElementById('completeUpdateButton');
+  if(btn)btn.style.display='none';
+  window.RushAndroid.completeUpdate();
 }
 function importBackup(){
  if(isAndroid()){window.RushAndroid.importBackup();return;}
@@ -610,7 +616,11 @@ function exportData(){
  if(isAndroid()&&window.RushAndroid.exportBackup){try{window.RushAndroid.exportBackup(payload);return}catch(e){}}
  const blob=new Blob([payload],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='rush-studio-sauvegarde.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
-function onAndroidUpdateStatus(message){document.getElementById('updateStatus').textContent=message;showPage('Settings')}
+function onAndroidUpdateStatus(message,ready){
+  const status=document.getElementById('updateStatus'),button=document.getElementById('completeUpdateButton');
+  status.textContent=message;
+  if(button)button.style.display=ready?'block':'none';
+}
 
 function render(){renderTasks('business','business','green');renderTasks('creative','creative','purple');renderTasks('mental','mental','blue');renderTasks('extra','extra','orange');updateProgress();updateStreaks()}
 render();renderAffairs();renderCourses();save();saveCourses();refreshSettings();
