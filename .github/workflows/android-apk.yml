@@ -2,7 +2,7 @@ name: Rush Studio Android · APK test et AAB Google Play
 
 on:
   push:
-    branches: [main, feat/sync30-playstore-20261008]
+    branches: [main, feat/sync30-playstore-20261008, feat/play-billing-ready-20261013]
     paths:
       - "app/**"
       - "index.html"
