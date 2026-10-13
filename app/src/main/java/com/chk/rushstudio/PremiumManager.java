@@ -41,11 +41,14 @@ public final class PremiumManager implements PurchasesUpdatedListener {
 
     public void connect() {
         if (connecting) return;
-        if (connected || billingClient.isReady()) {
+        if (billingClient.isReady()) {
             connected = true;
             refreshPurchases(false);
             return;
         }
+        // Un ancien état "connected" ne signifie pas que le service est encore prêt.
+        // Sinon connect() -> refreshPurchases() -> connect() peut boucler à l'infini.
+        connected = false;
         connecting = true;
         billingClient.startConnection(new BillingClientStateListener() {
             @Override public void onBillingSetupFinished(BillingResult result) {
