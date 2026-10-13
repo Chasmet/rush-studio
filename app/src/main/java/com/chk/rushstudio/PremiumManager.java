@@ -25,6 +25,7 @@ public final class PremiumManager implements PurchasesUpdatedListener {
     private ProductDetails.OneTimePurchaseOfferDetails selectedOffer;
     private boolean connected = false;
     private boolean connecting = false;
+    private boolean queryingProduct = false;
     private boolean premium = false;
     private String price = "0,99 €";
 
@@ -66,7 +67,8 @@ public final class PremiumManager implements PurchasesUpdatedListener {
     }
 
     private void queryProduct() {
-        if (!billingClient.isReady()) return;
+        if (!billingClient.isReady() || queryingProduct) return;
+        queryingProduct = true;
         productDetails = null;
         selectedOffer = null;
         QueryProductDetailsParams.Product product = QueryProductDetailsParams.Product.newBuilder()
@@ -76,6 +78,7 @@ public final class PremiumManager implements PurchasesUpdatedListener {
         QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
                 .setProductList(Collections.singletonList(product)).build();
         billingClient.queryProductDetailsAsync(params, (result, detailsResult) -> {
+            queryingProduct = false;
             if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
                 emitStatus("Catalogue Google Play temporairement indisponible. Réessaie plus tard.");
                 return;
