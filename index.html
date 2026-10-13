@@ -261,7 +261,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="premium-price" id="premiumPrice">0,99 € <span>achat à vie, sans abonnement</span></div>
 <div class="pro-state" id="premiumBadge">Version gratuite</div>
 <ul class="perks"><li>Affaires illimitées</li><li>Liste de courses illimitée</li><li>Toutes les fonctions actuelles et futures de cette version</li><li>Un seul paiement, achat restaurable</li></ul>
-<button class="primary" id="premiumBuyButton" onclick="purchasePremium()">Débloquer l'application complète · 0,99 €</button>
+<button class="primary" id="premiumBuyButton" onclick="purchasePremium()" disabled>Débloquer l'application complète · 0,99 €</button>
 <button onclick="restorePremium()">Restaurer mon achat</button>
 <div class="status" id="premiumStatus" aria-live="polite">Le paiement sécurisé est effectué par Google Play.</div>
 </div>
@@ -315,10 +315,11 @@ function isPlayInstalled(){
 }
 const FREE_AFFAIRS_LIMIT=10, FREE_COURSES_LIMIT=20;
 let premiumActive=false;
+let premiumAvailable=false;
 function isPremium(){return !isAndroid() || premiumActive}
 function requirePremium(reason){if(isPremium())return true;showPage('Settings');document.getElementById('premiumSection').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('premiumStatus').textContent=reason+' — déblocage unique via Google Play.';return false}
-function refreshPremium(){const pro=isPremium();document.getElementById('premiumBadge').textContent=pro?'Version complète active':'Version gratuite';document.getElementById('premiumBuyButton').style.display=pro?'none':'block';document.getElementById('affairsLimitLabel').textContent=pro?'Sans limite':'10 gratuits';}
-function onPremiumStatus(payload){try{if(typeof payload==='string')payload=JSON.parse(payload);premiumActive=Boolean(payload.active);if(payload.price){document.getElementById('premiumPrice').firstChild.textContent=payload.price+' ';document.getElementById('premiumBuyButton').textContent='Débloquer l\'application complète · '+payload.price}if(payload.message)document.getElementById('premiumStatus').textContent=payload.message;refreshPremium();}catch(e){}}
+function refreshPremium(){const pro=isPremium();document.getElementById('premiumBadge').textContent=pro?'Version complète active':'Version gratuite';document.getElementById('premiumBuyButton').style.display=pro?'none':'block';document.getElementById('premiumBuyButton').disabled=!pro&&!premiumAvailable;document.getElementById('affairsLimitLabel').textContent=pro?'Sans limite':'10 gratuits';}
+function onPremiumStatus(payload){try{if(typeof payload==='string')payload=JSON.parse(payload);premiumActive=Boolean(payload.active);premiumAvailable=Boolean(payload.available);if(payload.price){document.getElementById('premiumPrice').firstChild.textContent=payload.price+' ';document.getElementById('premiumBuyButton').textContent='Débloquer l\'application complète · '+payload.price}document.getElementById('premiumStatus').textContent=payload.message||(premiumActive?'Version complète active.':premiumAvailable?'Paiement sécurisé disponible via Google Play.':'Produit Premium en attente d\'activation dans Google Play Console.');refreshPremium();}catch(e){}}
 function purchasePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Paiement disponible dans l’application Android distribuée par Google Play.';return;}window.RushAndroid.purchasePremium()}
 function restorePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Restauration disponible dans l’application Android.';return;}window.RushAndroid.restorePremium()}
 function openReview(){

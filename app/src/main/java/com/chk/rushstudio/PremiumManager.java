@@ -25,6 +25,7 @@ public final class PremiumManager implements PurchasesUpdatedListener {
     private ProductDetails.OneTimePurchaseOfferDetails selectedOffer;
     private boolean connected = false;
     private boolean connecting = false;
+    private boolean queryingProduct = false;
     private boolean premium = false;
     private String price = "0,99 €";
 
@@ -34,16 +35,20 @@ public final class PremiumManager implements PurchasesUpdatedListener {
         billingClient = BillingClient.newBuilder(activity)
                 .setListener(this)
                 .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
+                .enableAutoServiceReconnection()
                 .build();
     }
 
     public void connect() {
         if (connecting) return;
-        if (connected || billingClient.isReady()) {
+        if (billingClient.isReady()) {
             connected = true;
             refreshPurchases(false);
             return;
         }
+        // Un ancien état "connected" ne signifie pas que le service est encore prêt.
+        // Sinon connect() -> refreshPurchases() -> connect() peut boucler à l'infini.
+        connected = false;
         connecting = true;
         billingClient.startConnection(new BillingClientStateListener() {
             @Override public void onBillingSetupFinished(BillingResult result) {
@@ -65,6 +70,10 @@ public final class PremiumManager implements PurchasesUpdatedListener {
     }
 
     private void queryProduct() {
+        if (!billingClient.isReady() || queryingProduct) return;
+        queryingProduct = true;
+        productDetails = null;
+        selectedOffer = null;
         QueryProductDetailsParams.Product product = QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(PRODUCT_ID)
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -72,7 +81,11 @@ public final class PremiumManager implements PurchasesUpdatedListener {
         QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
                 .setProductList(Collections.singletonList(product)).build();
         billingClient.queryProductDetailsAsync(params, (result, detailsResult) -> {
-            if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) return;
+            queryingProduct = false;
+            if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                emitStatus("Catalogue Google Play temporairement indisponible. Réessaie plus tard.");
+                return;
+            }
             List<ProductDetails> list = detailsResult.getProductDetailsList();
             if (list == null || list.isEmpty()) {
                 emitStatus("Produit Premium en attente d'activation dans Google Play Console.");
@@ -86,7 +99,13 @@ public final class PremiumManager implements PurchasesUpdatedListener {
                 // Compatibilité avec les produits Google Play à offre unique.
                 selectedOffer = productDetails.getOneTimePurchaseOfferDetails();
             }
-            if (selectedOffer != null) price = selectedOffer.getFormattedPrice();
+            if (selectedOffer == null || selectedOffer.getOfferToken() == null
+                    || selectedOffer.getOfferToken().isEmpty()) {
+                selectedOffer = null;
+                emitStatus("Offre Premium en attente d'activation dans Google Play Console.");
+                return;
+            }
+            price = selectedOffer.getFormattedPrice();
             emitStatus("");
         });
     }
@@ -121,6 +140,8 @@ public final class PremiumManager implements PurchasesUpdatedListener {
             connect();
             return;
         }
+        // Recharge le produit après son activation sans demander à l'utilisateur de réinstaller l'application.
+        if (productDetails == null) queryProduct();
         QueryPurchasesParams params = QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.INAPP).build();
         billingClient.queryPurchasesAsync(params, (result, purchases) -> {
@@ -146,9 +167,14 @@ public final class PremiumManager implements PurchasesUpdatedListener {
 
     private void processPurchases(List<Purchase> purchases, boolean restored) {
         boolean owned = false;
+        boolean pending = false;
         if (purchases != null) {
             for (Purchase purchase : purchases) {
                 if (!purchase.getProducts().contains(PRODUCT_ID)) continue;
+                if (purchase.getPurchaseState() == Purchase.PurchaseState.PENDING) {
+                    pending = true;
+                    continue;
+                }
                 if (purchase.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
                 owned = true;
                 if (!purchase.isAcknowledged()) {
@@ -163,12 +189,14 @@ public final class PremiumManager implements PurchasesUpdatedListener {
         }
         premium = owned;
         activity.getSharedPreferences("rush_settings", MainActivity.MODE_PRIVATE).edit().putBoolean("verified_premium", owned).apply();
-        emitStatus(owned ? "Version complète activée. Merci pour ton achat !" :
+        emitStatus(owned ? (restored ? "Achat restauré : version complète active." : "Version complète activée. Merci pour ton achat !") :
+                pending ? "Paiement en attente de confirmation Google Play. La version complète sera activée après validation." :
                 restored ? "Aucun achat associé à ce compte Google Play." : "");
     }
 
     public void emitStatus(String message) {
-        activity.notifyPremium(premium, price, message);
+        boolean canBuy = connected && billingClient.isReady() && productDetails != null && selectedOffer != null;
+        activity.notifyPremium(premium, canBuy, price, message);
     }
 
     public void destroy() {
