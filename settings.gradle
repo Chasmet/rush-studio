@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "RushStudio"
-include(":app")
+include(":app", ":sync30-billing")

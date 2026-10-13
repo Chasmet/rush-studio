@@ -2,9 +2,10 @@ name: Rush Studio Android · APK test et AAB Google Play
 
 on:
   push:
-    branches: [main, feat/sync30-playstore-20261008, feat/play-billing-ready-20261013]
+    branches: [main, feat/sync30-playstore-20261008, feat/play-billing-ready-20261013, feat/sync30-reusable-billing-20261013]
     paths:
       - "app/**"
+      - "sync30-billing/**"
       - "index.html"
       - "rush-*.png"
       - "build.gradle"
@@ -74,7 +75,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          ./gradlew --no-daemon :app:assembleDebug :app:bundleRelease \
+          ./gradlew --no-daemon :sync30-billing:testDebugUnitTest :app:assembleDebug :app:bundleRelease \
             -PversionCode="$APP_CODE" -PversionName="$APP_VERSION"
           test -s app/build/outputs/apk/debug/app-debug.apk
           test -s app/build/outputs/bundle/release/app-release.aab
