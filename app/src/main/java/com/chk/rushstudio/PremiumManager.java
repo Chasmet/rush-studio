@@ -1,205 +1,121 @@
 package com.chk.rushstudio;
 
-import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.BillingClient;
-import com.android.billingclient.api.BillingClientStateListener;
-import com.android.billingclient.api.BillingFlowParams;
-import com.android.billingclient.api.BillingResult;
-import com.android.billingclient.api.PendingPurchasesParams;
-import com.android.billingclient.api.ProductDetails;
-import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.PurchasesUpdatedListener;
-import com.android.billingclient.api.QueryProductDetailsParams;
-import com.android.billingclient.api.QueryPurchasesParams;
+import com.sync30.billing.ProductSpec;
+import com.sync30.billing.Sync30Billing;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-// SKU à créer dans Google Play Console : produit intégré non-consommable.
-// Le prix réel (0,99 € en France) est géré par Google Play, jamais par un serveur privé.
-public final class PremiumManager implements PurchasesUpdatedListener {
+/**
+ * Rush Studio adapter to the reusable Sync30 Billing module.
+ * All product IDs, purchase options and app-specific UI live here.
+ */
+public final class PremiumManager implements Sync30Billing.Listener {
     public static final String PRODUCT_ID = "rush_studio_full";
+    private static final String PURCHASE_OPTION = "full-access";
+
     private final MainActivity activity;
-    private final BillingClient billingClient;
-    private ProductDetails productDetails;
-    private ProductDetails.OneTimePurchaseOfferDetails selectedOffer;
-    private boolean connected = false;
-    private boolean connecting = false;
-    private boolean queryingProduct = false;
-    private boolean premium = false;
-    private String price = "0,99 €";
+    private final Sync30Billing billing;
+    private boolean premium;
+    private boolean available;
+    private boolean restoring;
+    private boolean pending;
+    private String price = "";
+    private String currentMessage = "";
 
     public PremiumManager(MainActivity activity) {
         this.activity = activity;
-        this.premium = activity.getSharedPreferences("rush_settings", MainActivity.MODE_PRIVATE).getBoolean("verified_premium", false);
-        billingClient = BillingClient.newBuilder(activity)
-                .setListener(this)
-                .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
-                .enableAutoServiceReconnection()
-                .build();
+        premium = activity.getSharedPreferences("rush_settings", MainActivity.MODE_PRIVATE)
+                .getBoolean("verified_premium", false);
+        billing = new Sync30Billing(activity,
+                Collections.singletonList(new ProductSpec(PRODUCT_ID, PURCHASE_OPTION)), this);
     }
 
     public void connect() {
-        if (connecting) return;
-        if (billingClient.isReady()) {
-            connected = true;
-            refreshPurchases(false);
-            return;
-        }
-        // Un ancien état "connected" ne signifie pas que le service est encore prêt.
-        // Sinon connect() -> refreshPurchases() -> connect() peut boucler à l'infini.
-        connected = false;
-        connecting = true;
-        billingClient.startConnection(new BillingClientStateListener() {
-            @Override public void onBillingSetupFinished(BillingResult result) {
-                connecting = false;
-                if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    connected = true;
-                    queryProduct();
-                    refreshPurchases(false);
-                } else {
-                    emitStatus("Google Play Billing indisponible. Vérifie ton compte Play.");
-                }
-            }
-            @Override public void onBillingServiceDisconnected() {
-                connected = false;
-                connecting = false;
-                emitStatus("Connexion Google Play interrompue.");
-            }
-        });
-    }
-
-    private void queryProduct() {
-        if (!billingClient.isReady() || queryingProduct) return;
-        queryingProduct = true;
-        productDetails = null;
-        selectedOffer = null;
-        QueryProductDetailsParams.Product product = QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(PRODUCT_ID)
-                .setProductType(BillingClient.ProductType.INAPP)
-                .build();
-        QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
-                .setProductList(Collections.singletonList(product)).build();
-        billingClient.queryProductDetailsAsync(params, (result, detailsResult) -> {
-            queryingProduct = false;
-            if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
-                emitStatus("Catalogue Google Play temporairement indisponible. Réessaie plus tard.");
-                return;
-            }
-            List<ProductDetails> list = detailsResult.getProductDetailsList();
-            if (list == null || list.isEmpty()) {
-                emitStatus("Produit Premium en attente d'activation dans Google Play Console.");
-                return;
-            }
-            productDetails = list.get(0);
-            List<ProductDetails.OneTimePurchaseOfferDetails> offers = productDetails.getOneTimePurchaseOfferDetailsList();
-            if (offers != null && !offers.isEmpty()) {
-                selectedOffer = offers.get(0);
-            } else {
-                // Compatibilité avec les produits Google Play à offre unique.
-                selectedOffer = productDetails.getOneTimePurchaseOfferDetails();
-            }
-            if (selectedOffer == null || selectedOffer.getOfferToken() == null
-                    || selectedOffer.getOfferToken().isEmpty()) {
-                selectedOffer = null;
-                emitStatus("Offre Premium en attente d'activation dans Google Play Console.");
-                return;
-            }
-            price = selectedOffer.getFormattedPrice();
-            emitStatus("");
-        });
+        billing.connect();
     }
 
     public void buy() {
-        if (!connected || !billingClient.isReady()) {
-            emitStatus("Connexion Google Play en cours. Réessaie.");
-            connect();
-            return;
-        }
-        if (productDetails == null || selectedOffer == null) {
-            emitStatus("Achat indisponible : activer le produit rush_studio_full dans Google Play.");
-            queryProduct();
-            return;
-        }
-        BillingFlowParams.ProductDetailsParams detailsParams =
-                BillingFlowParams.ProductDetailsParams.newBuilder()
-                 .setProductDetails(productDetails)
-                .setOfferToken(selectedOffer.getOfferToken())
-                .build();
-        BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(Collections.singletonList(detailsParams))
-                .build();
-        BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
-        if (result.getResponseCode() != BillingClient.BillingResponseCode.OK)
-            emitStatus("Paiement indisponible : " + result.getDebugMessage());
+        billing.buy(PRODUCT_ID);
     }
 
     public void refreshPurchases(boolean manual) {
-        if (!connected || !billingClient.isReady()) {
-            if (manual) emitStatus("Connexion à Google Play…");
-            connect();
-            return;
-        }
-        // Recharge le produit après son activation sans demander à l'utilisateur de réinstaller l'application.
-        if (productDetails == null) queryProduct();
-        QueryPurchasesParams params = QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.INAPP).build();
-        billingClient.queryPurchasesAsync(params, (result, purchases) -> {
-            if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
-                if (manual) emitStatus("Restauration impossible pour le moment.");
-                return;
-            }
-            processPurchases(purchases, manual);
-        });
+        if (manual) restoring = true;
+        billing.refresh();
     }
 
-    @Override public void onPurchasesUpdated(BillingResult result, List<Purchase> purchases) {
-        if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-            processPurchases(purchases, false);
-        } else if (result.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
-            refreshPurchases(true);
-        } else if (result.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
-            emitStatus("Achat annulé, aucun prélèvement effectué.");
-        } else {
-            emitStatus("Achat non finalisé : " + result.getDebugMessage());
-        }
-    }
-
-    private void processPurchases(List<Purchase> purchases, boolean restored) {
-        boolean owned = false;
-        boolean pending = false;
-        if (purchases != null) {
-            for (Purchase purchase : purchases) {
-                if (!purchase.getProducts().contains(PRODUCT_ID)) continue;
-                if (purchase.getPurchaseState() == Purchase.PurchaseState.PENDING) {
-                    pending = true;
-                    continue;
-                }
-                if (purchase.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
-                owned = true;
-                if (!purchase.isAcknowledged()) {
-                    AcknowledgePurchaseParams params = AcknowledgePurchaseParams.newBuilder()
-                            .setPurchaseToken(purchase.getPurchaseToken()).build();
-                    billingClient.acknowledgePurchase(params, result -> {
-                        if (result.getResponseCode() != BillingClient.BillingResponseCode.OK)
-                            emitStatus("Achat détecté, confirmation Google Play en attente.");
-                    });
+    @Override public void onCatalog(Map<String, List<Sync30Billing.CatalogOffer>> offers) {
+        List<Sync30Billing.CatalogOffer> selected = offers.get(PRODUCT_ID);
+        available = selected != null && !selected.isEmpty();
+        if (available) {
+            // Product prices are localized by Google Play (not hard-coded here).
+            Sync30Billing.CatalogOffer option = selected.get(0);
+            for (Sync30Billing.CatalogOffer offer : selected) {
+                if (offer.offerId == null || offer.offerId.isEmpty()) {
+                    option = offer;
+                    break;
                 }
             }
+            price = option.formattedPrice;
+            currentMessage = "";
+        } else if (!premium) {
+            currentMessage = "Produit Premium indisponible dans le catalogue Google Play.";
         }
+        emitStatus(currentMessage);
+    }
+
+    @Override public void onEntitlements(Set<String> ownedProducts) {
+        boolean owned = ownedProducts.contains(PRODUCT_ID);
+        boolean wasOwned = premium;
         premium = owned;
-        activity.getSharedPreferences("rush_settings", MainActivity.MODE_PRIVATE).edit().putBoolean("verified_premium", owned).apply();
-        emitStatus(owned ? (restored ? "Achat restauré : version complète active." : "Version complète activée. Merci pour ton achat !") :
-                pending ? "Paiement en attente de confirmation Google Play. La version complète sera activée après validation." :
-                restored ? "Aucun achat associé à ce compte Google Play." : "");
+        if (owned) pending = false;
+        // The cached value is only a temporary offline hint; Play purchases
+        // are authoritative whenever the purchase query succeeds.
+        activity.getSharedPreferences("rush_settings", MainActivity.MODE_PRIVATE)
+                .edit().putBoolean("verified_premium", owned).apply();
+        if (restoring) {
+            currentMessage = owned ? "Achat restauré : version complète active."
+                    : pending ? "Paiement en attente de confirmation Google Play."
+                    : "Aucun achat associé à ce compte Google Play.";
+        } else if (owned) {
+            currentMessage = wasOwned ? "" : "Version complète activée.";
+        } else if (pending) {
+            currentMessage = "Paiement en attente de confirmation Google Play.";
+        } else {
+            currentMessage = "";
+        }
+        restoring = false;
+        emitStatus(currentMessage);
+    }
+
+    @Override public void onPurchasePending(String productId) {
+        if (!PRODUCT_ID.equals(productId)) return;
+        pending = true;
+        currentMessage = "Paiement en attente : l'accès complet n'est pas encore débloqué.";
+        emitStatus(currentMessage);
+    }
+
+    @Override public void onError(int responseCode, String debugMessage) {
+        String readable = debugMessage == null || debugMessage.trim().isEmpty()
+                ? "Service Google Play indisponible"
+                : debugMessage;
+        if (responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
+            currentMessage = "Achat annulé.";
+        } else {
+            currentMessage = "Google Play : " + readable;
+        }
+        emitStatus(currentMessage);
     }
 
     public void emitStatus(String message) {
-        boolean canBuy = connected && billingClient.isReady() && productDetails != null && selectedOffer != null;
-        activity.notifyPremium(premium, canBuy, price, message);
+        if (message != null) currentMessage = message;
+        activity.notifyPremium(premium, available, price, currentMessage);
     }
 
     public void destroy() {
-        if (billingClient.isReady()) billingClient.endConnection();
+        billing.close();
     }
 }
