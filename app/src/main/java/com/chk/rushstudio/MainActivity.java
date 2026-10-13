@@ -101,9 +101,9 @@ public class MainActivity extends Activity {
         catch (Exception ignored) { Toast.makeText(this, "Lien non disponible", Toast.LENGTH_SHORT).show(); }
     }
 
-    public void notifyPremium(boolean active, String price, String message) {
+    public void notifyPremium(boolean active, boolean available, String price, String message) {
         if (webView == null) return;
-        String payload = "{\"active\":" + active + ",\"price\":" + JSONObject.quote(price == null ? "" : price)
+        String payload = "{\"active\":" + active + ",\"available\":" + available + ",\"price\":" + JSONObject.quote(price == null ? "" : price)
                 + ",\"message\":" + JSONObject.quote(message == null ? "" : message) + "}";
         runOnUiThread(() -> webView.evaluateJavascript(
                 "if(window.onPremiumStatus)window.onPremiumStatus(" + payload + ");", null));
