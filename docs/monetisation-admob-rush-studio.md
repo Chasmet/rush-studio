@@ -1,5 +1,21 @@
 # Rush Studio — migration gratuite financée par AdMob
 
+## AdMob — configuration réellement effectuée le 15 octobre 2026
+
+- Compte AdMob créé avec le compte d'éditeur Google existant `pub-8033777716855613` (profil individuel). **Le compte reste en vérification** ; le nom de paiement affiché dans l'ancien profil est « skypiea channel », avec une adresse ancienne. Il faut **mettre à jour le bénéficiaire et l'adresse avec les informations légales de Sync 30 Numérique si Google autorise la modification**, sinon demander à l'assistance quel parcours est permis. Ne pas prétendre que cette étape est terminée.
+- Application Android ajoutée depuis Google Play : `com.chk.rushstudio`.
+- Identifiant d'application **confirmé par AdMob** : `ca-app-pub-8033777716855613~5451411809`.
+- Bloc **Bannière** créé : `Rush Studio - Bannière discrète`.
+- Identifiant de bloc **confirmé par AdMob** : `ca-app-pub-8033777716855613/6855072949`.
+- Site développeur dans les paramètres de la fiche Play : `https://sync30.pntr.dev/`.
+- Fichier `app-ads.txt` ajouté dans `Chasmet/sync30` branche main, ligne **exacte** :
+  `google.com, pub-8033777716855613, DIRECT, f08c47fec0942fa0`.
+- Render `sync30` redéployé (commit `7b04e1dfa92747e3d6d43ce4af94327bdd812163`, statut live), fichier **publiquement accessible et vérifié** à `https://sync30.pntr.dev/app-ads.txt`.
+- Bouton « Check for updates » actionné dans la page de vérification AdMob. L'interface montre encore l'ancien message « We couldn't verify Rush Studio » immédiatement après : **attendre l'exploration/approbation, ne pas annoncer la vérification comme réussie**.
+- Compilation GitHub Actions de la version gratuite 2.3 **réussie** : https://github.com/Chasmet/rush-studio/actions/runs/38740607005.
+- Le workflow de compilation de cette branche utilise ces identifiants réels pour l'AAB release, tout en utilisant les identifiants officiels de test Google en debug. **Aucune AAB n'a été publiée dans Google Play**.
+
+
 ## Objectif
 
 La version publique actuelle de Rush Studio `com.chk.rushstudio` (2.2.63 / 22063) reste intacte. Cette branche prépare une **future** mise à jour où les affaires et listes de courses sont illimitées pour tous, sans achat intégré. Une seule bannière native AdMob peut être affichée, avec consentement UMP et sans interrompre la saisie. Aucun interstitiel, aucune vidéo obligatoire.
