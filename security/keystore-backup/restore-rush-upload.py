@@ -33,7 +33,7 @@ def main() -> None:
     if not blob.startswith(b"RSK1") or len(blob)<32:
         raise SystemExit("Format de sauvegarde inconnu ou corrompu.")
     secret = getpass.getpass("Mot de passe de récupération (ne s'affiche pas) : ")
-    k = hashlib.sha256(KDF_LABEL+b"\\0"+secret.encode("utf-8")).digest()
+    k = hashlib.sha256(KDF_LABEL+bytes([0])+secret.encode("utf-8")).digest()
     try:
         data = AESGCM(k).decrypt(blob[4:16],blob[16:],AAD)
     except Exception as ex:
