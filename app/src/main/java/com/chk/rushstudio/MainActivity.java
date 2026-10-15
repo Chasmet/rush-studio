@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
     private WebView webView;
-    private PremiumManager premiumManager;
+    private AdMobBannerManager adMobManager;
     private PlayUpdateManager playUpdateManager;
     private SharedPreferences prefs;
     private static final int REQUEST_EXPORT = 7401;
@@ -62,25 +62,24 @@ public class MainActivity extends Activity {
                 return true;
             }
             @Override public void onPageFinished(WebView view, String url) {
-                if (premiumManager != null) premiumManager.emitStatus("");
+                if (adMobManager != null) adMobManager.emitStatus();
             }
         });
         // Ne charger que le HTML livré dans l'application. Aucun JS distant n'est autorisé.
         webView.addJavascriptInterface(new AndroidBridge(), "RushAndroid");
-        premiumManager = new PremiumManager(this);
+        adMobManager = new AdMobBannerManager(this, findViewById(R.id.adContainer));
         playUpdateManager = new PlayUpdateManager(this);
         webView.loadUrl("file:///android_asset/www/index.html");
-        premiumManager.connect();
+        adMobManager.start();
     }
 
     @Override protected void onResume() {
         super.onResume();
-        if (premiumManager != null) premiumManager.refreshPurchases(false);
         if (playUpdateManager != null) playUpdateManager.checkDownloadedUpdate();
     }
 
     @Override protected void onDestroy() {
-        if (premiumManager != null) premiumManager.destroy();
+        if (adMobManager != null) adMobManager.destroy();
         if (playUpdateManager != null) playUpdateManager.destroy();
         if (webView != null) {
             webView.removeJavascriptInterface("RushAndroid");
@@ -101,12 +100,12 @@ public class MainActivity extends Activity {
         catch (Exception ignored) { Toast.makeText(this, "Lien non disponible", Toast.LENGTH_SHORT).show(); }
     }
 
-    public void notifyPremium(boolean active, String price, String message) {
+    public void notifyAdsStatus(boolean privacyOptionsRequired, String message) {
         if (webView == null) return;
-        String payload = "{\"active\":" + active + ",\"price\":" + JSONObject.quote(price == null ? "" : price)
+        String payload = "{\"privacyOptionsRequired\":" + privacyOptionsRequired
                 + ",\"message\":" + JSONObject.quote(message == null ? "" : message) + "}";
         runOnUiThread(() -> webView.evaluateJavascript(
-                "if(window.onPremiumStatus)window.onPremiumStatus(" + payload + ");", null));
+                "if(window.onAdsStatus)window.onAdsStatus(" + payload + ");", null));
     }
 
     public void notifyUpdate(String message, boolean ready) {
@@ -162,12 +161,10 @@ public class MainActivity extends Activity {
     public final class AndroidBridge {
         @JavascriptInterface public String getAppVersion() { return BuildConfig.VERSION_NAME; }
 
-        @JavascriptInterface public void purchasePremium() {
-            runOnUiThread(() -> premiumManager.buy());
-        }
-
-        @JavascriptInterface public void restorePremium() {
-            runOnUiThread(() -> premiumManager.refreshPurchases(true));
+        @JavascriptInterface public void showAdPrivacyOptions() {
+            runOnUiThread(() -> {
+                if (adMobManager != null) adMobManager.showPrivacyOptions();
+            });
         }
 
         @JavascriptInterface public void checkForUpdate() {

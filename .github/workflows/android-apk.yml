@@ -2,7 +2,7 @@ name: Rush Studio Android · APK test et AAB Google Play
 
 on:
   push:
-    branches: [main, feat/sync30-playstore-20261008]
+    branches: [main, feat/sync30-playstore-20261008, feat/rushstudio-gratuit-admob-20261015]
     paths:
       - "app/**"
       - "index.html"
@@ -56,8 +56,8 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PWD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "APP_VERSION=2.2.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
-          echo "APP_CODE=$((22000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          echo "APP_VERSION=2.3.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "APP_CODE=$((23000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
           if [ -n "$KEYSTORE_B64" ] && [ -n "$STORE_PWD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PWD" ]; then
             printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/rush-studio-upload.jks"
             chmod 600 "$RUNNER_TEMP/rush-studio-upload.jks"
@@ -70,6 +70,8 @@ jobs:
       - name: Construire APK debug et AAB release
         env:
           ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/rush-studio-upload.jks
+          ADMOB_APP_ID: ca-app-pub-8033777716855613~5451411809
+          ADMOB_BANNER_UNIT_ID: ca-app-pub-8033777716855613/6855072949
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -92,7 +94,8 @@ jobs:
         run: |
           echo "### Rush Studio $APP_VERSION" >> "$GITHUB_STEP_SUMMARY"
           echo "- Cible Google Play : API 36" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Produit intégré attendu : rush_studio_full (achat unique 0,99 €)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Offre : toutes les fonctionnalités gratuites, sans achat intégré" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Publicités : bannière AdMob, compte et app-ads.txt à vérifier avant la publication" >> "$GITHUB_STEP_SUMMARY"
           echo "- AAB signé : $UPLOAD_SIGNED" >> "$GITHUB_STEP_SUMMARY"
           if [ "$UPLOAD_SIGNED" != true ]; then
             echo "- ⚠️ Ne pas importer l'AAB non signé dans Play Console." >> "$GITHUB_STEP_SUMMARY"

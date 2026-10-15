@@ -10,6 +10,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
+        <!-- Valeur test en debug ; ID réel nécessaire avant la publication AdMob. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${ADMOB_APP_ID}" />
 
         <activity
             android:name=".MainActivity"
