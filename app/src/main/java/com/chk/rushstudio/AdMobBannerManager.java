@@ -112,13 +112,20 @@ public final class AdMobBannerManager {
             return;
         }
         UserMessagingPlatform.showPrivacyOptionsForm(activity, error -> {
-            emitStatus();
-            if (consentInformation.canRequestAds()) {
-                initializeIfAllowed();
-            } else {
-                adLoaded = false;
-                container.setVisibility(View.GONE);
+            // Après un changement de choix, détruire l'ancienne annonce afin que
+            // toute nouvelle demande utilise le nouvel état de consentement.
+            if (banner != null) {
+                banner.destroy();
+                banner = null;
+                container.removeAllViews();
             }
+            adLoaded = false;
+            container.setVisibility(View.GONE);
+            if (consentInformation.canRequestAds()) {
+                if (initializationStarted) loadBanner();
+                else initializeIfAllowed();
+            }
+            emitStatus();
         });
     }
 
