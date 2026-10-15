@@ -2,9 +2,9 @@
 
 **NE PAS PARTAGER LE MOT DE PASSE DE RÉCUPÉRATION SUR GITHUB.**
 
-**ATTENTION : la sauvegarde `.jks.rsk1.b64` actuellement présente dans ce dépôt contient encore l'ancienne clé et ne correspond pas au nouveau SHA-256 ci-dessous. NE PAS L'UTILISER jusqu'à son remplacement vérifié.**
+**SAUVEGARDE CORRIGÉE ET VÉRIFIÉE :** le fichier `.jks.rsk1.b64` présent dans ce dépôt correspond maintenant à la clé JKS corrigée. La copie chiffrée est également disponible en bloc de code dans CHK Agent Browser > Mes notes > « Code instan ». Le mot de passe de récupération reste séparé et ne doit jamais être commité.
 
-Cette sauvegarde chiffrée concerne une **nouvelle clé d'envoi** créée le 15 octobre 2026 pour `com.chk.rushstudio`. Elle ne remplace pas la clé Google Play App Signing existante. Elle ne devient utilisable pour mettre à jour Rush Studio **qu'après l'acceptation par Google Play** de la demande officielle de réinitialisation de la clé d'envoi et l'enregistrement du nouveau certificat.
+Cette sauvegarde chiffrée vérifiée concerne une **nouvelle clé d'envoi** créée le 15 octobre 2026 pour `com.chk.rushstudio`. Elle ne remplace pas la clé Google Play App Signing existante. Elle ne devient utilisable pour mettre à jour Rush Studio **qu'après l'acceptation par Google Play** de la demande officielle de réinitialisation de la clé d'envoi et l'enregistrement du nouveau certificat.
 
 Fichiers :
 - `rush-studio-upload-2026.jks.rsk1.b64` : copie chiffrée AES-256-GCM, sans mot de passe, sécurisée par un mot de passe aléatoire long fourni séparément au titulaire ;
