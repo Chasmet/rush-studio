@@ -61,7 +61,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 .task:has(input:checked){opacity:.55}button{transition:filter .15s ease,transform .15s ease}button:focus-visible,input:focus-visible{outline:2px solid #ffc265;outline-offset:2px}
 .bottom-nav{max-width:680px;margin:0 auto;background:rgba(12,13,17,.98);border-top:1px solid #31333a;border-radius:20px 20px 0 0}
 .brand-footer{text-align:center;color:#a3a5ac;font-size:12px;margin:18px 0 4px;line-height:1.65}.brand-footer b{color:#fcb758}
-.premium-card{background:linear-gradient(140deg,#35210b,#1a1b20 65%);border:1px solid #a06a26}
+.free-card{background:linear-gradient(140deg,#302517,#1a1b20 65%);border:1px solid #7a6035}
 .premium-price{font-size:32px;font-weight:900;margin:9px 0;color:#ffbc59;letter-spacing:-1px}
 .premium-price span{font-size:12px;color:#ccc;font-weight:500;letter-spacing:0}
 .perks{margin:10px 0 14px 18px;line-height:1.8;color:#dedee2;font-size:14px}
@@ -103,7 +103,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <p>Organise tes projets, affaires et courses</p><div class="brandline">par Sync 30 Numérique</div>
 </div>
 </div>
-<div class="hero"><div class="brand-overline">Ton espace quotidien</div><h2>Chaque jour, avance sur l’essentiel.</h2><p>Un studio personnel pour rester concentré. Tes données restent sur ton appareil.</p><div class="hero-line"><span class="hero-metric" id="heroProgress">Ta progression du jour</span><button class="hero-action" onclick="showPage('Settings');document.getElementById('premiumSection').scrollIntoView()">Découvrir la version complète</button></div></div>
+<div class="hero"><div class="brand-overline">Ton espace quotidien</div><h2>Chaque jour, avance sur l’essentiel.</h2><p>Un studio personnel pour rester concentré. Tes données restent sur ton appareil.</p><div class="hero-line"><span class="hero-metric" id="heroProgress">Ta progression du jour</span><button class="hero-action" onclick="showPage('Affaires')">Voir mes affaires</button></div></div>
 <div class="section green">
 <h2>💸 Business</h2>
 <div id="business"></div>
@@ -145,7 +145,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 
 <div class="affaires-toolbar">
 <button class="primary" onclick="openAffairForm()">➕ Ajouter une affaire</button>
-<div class="persist-chip" id="affairsLimitLabel">10 gratuits</div>
+<div class="persist-chip" id="affairsLimitLabel">Sans limite</div>
 </div>
 
 <div class="section">
@@ -252,18 +252,16 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="logo" style="background:linear-gradient(135deg,#646464,#222)">⚙️</div>
 <div class="logo-text">
 <h1>Réglages</h1>
-<p>Application, version complète et mises à jour</p><div class="brandline">par Sync 30 Numérique</div>
+<p>Application gratuite, confidentialité et mises à jour</p><div class="brandline">par Sync 30 Numérique</div>
 </div>
 </div>
-<div class="section premium-card" id="premiumSection">
-<div class="brand-overline">RUSH STUDIO COMPLET</div>
-<h2>Débloque ton organisation, sans limites</h2>
-<div class="premium-price" id="premiumPrice">0,99 € <span>achat à vie, sans abonnement</span></div>
-<div class="pro-state" id="premiumBadge">Version gratuite</div>
-<ul class="perks"><li>Affaires illimitées</li><li>Liste de courses illimitée</li><li>Toutes les fonctions actuelles et futures de cette version</li><li>Un seul paiement, achat restaurable</li></ul>
-<button class="primary" id="premiumBuyButton" onclick="purchasePremium()">Débloquer l'application complète · 0,99 €</button>
-<button onclick="restorePremium()">Restaurer mon achat</button>
-<div class="status" id="premiumStatus" aria-live="polite">Le paiement sécurisé est effectué par Google Play.</div>
+<div class="section free-card" id="freeSection">
+<div class="brand-overline">RUSH STUDIO GRATUIT</div>
+<h2>Toutes les fonctionnalités, sans paiement</h2>
+<p class="small-muted">Affaires et listes de courses illimitées. Les publicités discrètes contribuent à maintenir l'application gratuite.</p>
+<ul class="perks"><li>Affaires illimitées</li><li>Liste de courses illimitée</li><li>Pas d'abonnement ni d'achat intégré requis</li><li>Tes données d'organisation restent sur ton appareil</li></ul>
+<div class="status" id="adsStatus" aria-live="polite">Publicités en préparation. L'application reste utilisable gratuitement.</div>
+<button id="adPrivacyButton" style="display:none" onclick="manageAdPrivacy()">Mes choix de confidentialité publicitaire</button>
 </div>
 <div class="section orange">
 <h2>Mises à jour</h2>
@@ -275,7 +273,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 </div>
 <div class="section">
 <h2>Nouveautés</h2>
-<div class="news-item"><b>Version 2.2</b> · Identité Sync 30 Numérique, interface repensée et préparation du paiement unique.</div>
+<div class="news-item"><b>Rush Studio gratuit</b> · Toutes les fonctionnalités accessibles et préparation de publicités discrètes.</div>
 <div class="news-item">Tes listes, tâches et affaires restent enregistrées lors des mises à jour.</div>
 </div>
 <div class="section">
@@ -313,14 +311,20 @@ function isPlayInstalled(){
   if(!isAndroid())return false;
   try{return window.RushAndroid.isPlayInstalled();}catch(e){return false;}
 }
-const FREE_AFFAIRS_LIMIT=10, FREE_COURSES_LIMIT=20;
-let premiumActive=false;
-function isPremium(){return !isAndroid() || premiumActive}
-function requirePremium(reason){if(isPremium())return true;showPage('Settings');document.getElementById('premiumSection').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('premiumStatus').textContent=reason+' — déblocage unique via Google Play.';return false}
-function refreshPremium(){const pro=isPremium();document.getElementById('premiumBadge').textContent=pro?'Version complète active':'Version gratuite';document.getElementById('premiumBuyButton').style.display=pro?'none':'block';document.getElementById('affairsLimitLabel').textContent=pro?'Sans limite':'10 gratuits';}
-function onPremiumStatus(payload){try{if(typeof payload==='string')payload=JSON.parse(payload);premiumActive=Boolean(payload.active);if(payload.price){document.getElementById('premiumPrice').firstChild.textContent=payload.price+' ';document.getElementById('premiumBuyButton').textContent='Débloquer l\'application complète · '+payload.price}if(payload.message)document.getElementById('premiumStatus').textContent=payload.message;refreshPremium();}catch(e){}}
-function purchasePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Paiement disponible dans l’application Android distribuée par Google Play.';return;}window.RushAndroid.purchasePremium()}
-function restorePremium(){if(!isAndroid()){document.getElementById('premiumStatus').textContent='Restauration disponible dans l’application Android.';return;}window.RushAndroid.restorePremium()}
+function onAdsStatus(payload){
+  try{
+    if(typeof payload==='string') payload=JSON.parse(payload);
+    const status=document.getElementById('adsStatus');
+    const button=document.getElementById('adPrivacyButton');
+    if(status&&payload&&typeof payload.message==='string') status.textContent=payload.message;
+    if(button) button.style.display=payload&&payload.privacyOptionsRequired?'block':'none';
+  }catch(e){}
+}
+function manageAdPrivacy(){
+  if(isAndroid() && window.RushAndroid && typeof window.RushAndroid.showAdPrivacyOptions==='function'){
+    window.RushAndroid.showAdPrivacyOptions();
+  }
+}
 function openReview(){
   const status=document.getElementById('reviewStatus');
   if(!isPlayInstalled()){
@@ -379,7 +383,6 @@ function closeAffairForm(event){
 function addAffair(){
  const title=document.getElementById('affairTitle').value.trim();
  if(!title)return;
- if(!isPremium() && affairs.filter(a=>!a.done).length>=FREE_AFFAIRS_LIMIT){requirePremium('Limite de 10 affaires actives atteinte');return;}
  affairs.unshift({id:Date.now(),title:title,category:document.getElementById('affairCategory').value,priority:document.getElementById('affairPriority').value,notes:document.getElementById('affairNotes').value.trim(),done:false,created:new Date().toISOString()});
  document.getElementById('affairTitle').value='';document.getElementById('affairNotes').value='';
  saveAffairs();renderAffairs();closeAffairForm();
@@ -441,7 +444,6 @@ function addCourse(){
 
  const parts=raw.split(/[,;\n]+/).map(v=>parseCourseToken(v,defaultQty)).filter(v=>v.name);
  if(!parts.length){showCourseFeedback('Aucun article valide détecté.');return}
- if(!isPremium() && courses.length>=FREE_COURSES_LIMIT){requirePremium('Limite de 20 articles atteinte');return}
 
  parts.forEach((entry,index)=>{
    const key=normalizeCourseName(entry.name);
@@ -578,7 +580,6 @@ function isAndroid(){return typeof window.RushAndroid!=='undefined'}
 
 function refreshSettings(){
   document.getElementById('installedVersion').textContent=isAndroid()?window.RushAndroid.getAppVersion():WEB_VERSION;
-  refreshPremium();
 }
 function checkForUpdate(){
   const status=document.getElementById('updateStatus');
