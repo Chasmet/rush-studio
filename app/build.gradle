@@ -5,6 +5,12 @@ plugins {
 def ciVersionCode = providers.gradleProperty('versionCode').orNull
 def ciVersionName = providers.gradleProperty('versionName').orNull
 
+// Les identifiants réels doivent venir de la configuration CI, jamais être inventés.
+def admobAppId = (System.getenv('ADMOB_APP_ID') ?: '').trim()
+def admobBannerId = (System.getenv('ADMOB_BANNER_UNIT_ID') ?: '').trim()
+def admobReady = (admobAppId ==~ /ca-app-pub-\d+~\d+/) && (admobBannerId ==~ /ca-app-pub-\d+\/\d+/)
+def testAdmobAppId = 'ca-app-pub-3940256099942544~3347511713'
+
 android {
     namespace 'com.chk.rushstudio'
     compileSdk 36
@@ -15,6 +21,8 @@ android {
         targetSdk 36
         versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 22000
         versionName ciVersionName != null ? ciVersionName : "2.2.0"
+        buildConfigField 'boolean', 'ADMOB_READY', admobReady.toString()
+        buildConfigField 'String', 'ADMOB_BANNER_UNIT_ID', '"' + (admobReady ? admobBannerId : '') + '"'
     }
 
     signingConfigs {
@@ -33,9 +41,13 @@ android {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
+            // En mode debug, Google recommande ses identifiants publicitaires de test.
+            manifestPlaceholders = [ADMOB_APP_ID: testAdmobAppId]
         }
         release {
             minifyEnabled false
+            // Sans identifiants AdMob réels, aucune annonce en release n'est demandée.
+            manifestPlaceholders = [ADMOB_APP_ID: (admobReady ? admobAppId : testAdmobAppId)]
             if (System.getenv("ANDROID_KEYSTORE_FILE") && file(System.getenv("ANDROID_KEYSTORE_FILE")).isFile()) {
                 signingConfig signingConfigs.release
             }
@@ -72,6 +84,7 @@ dependencies {
     // Aligner toutes les variantes Kotlin transitives (Billing / AndroidX).
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.24')
     implementation 'androidx.core:core:1.15.0'
-    implementation 'com.android.billingclient:billing:8.3.0'
+    implementation 'com.google.android.gms:play-services-ads:25.5.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
     implementation 'com.google.android.play:app-update:2.1.0'
 }
