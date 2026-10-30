@@ -1,0 +1,38 @@
+name: Rush Studio - Preparer AAB pour Google Play interne
+
+on:
+  push:
+    branches: [feature/freemium-3jours-playbilling]
+    paths:
+      - 'app/**'
+      - 'index.html'
+      - 'gradlew'
+      - 'gradle/**'
+      - '.github/workflows/play-internal-aab-prep.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aab-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Preparer Gradle
+        run: chmod +x gradlew
+      - name: Compiler un AAB non signe (verification uniquement)
+        run: ./gradlew :app:bundleRelease -PversionCode=22001 -PversionName=2.2.1-preparation --no-daemon
+      - name: Verifier le bundle
+        run: test -s app/build/outputs/bundle/release/app-release.aab
+      - name: Conserver le bundle non signe (NE PAS envoyer a Google Play)
+        uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-aab-preparation-NON-SIGNE
+          path: app/build/outputs/bundle/release/app-release.aab
+          retention-days: 7
