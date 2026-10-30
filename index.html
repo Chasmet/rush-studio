@@ -239,6 +239,14 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <p style="opacity:.72;line-height:1.45">Rush Studio, Rush Affaires et Courses utilisent des stockages persistants séparés. Une mise à jour de l’application ne supprime pas tes données.</p>
 <button onclick="exportData()">Exporter une sauvegarde JSON</button>
 </div>
+<div class="section orange" id="rushPremiumPanel">
+<h2>Premium Rush Studio</h2>
+<p style="opacity:.85;line-height:1.5">Offre prévue : <strong>3 jours d'essai gratuits</strong>, puis <strong>0,49 € TTC</strong> en achat unique, sans abonnement ni prélèvement automatique. Après l'essai, l'achat doit être confirmé par le client dans Google Play.</p>
+<p class="status" id="rushPremiumStatus" aria-live="polite">Configuration Google Play en préparation : aucun paiement ne peut être déclenché actuellement.</p>
+<button onclick="refreshRushPremiumCatalogue()">Vérifier le catalogue Google Play</button>
+<button class="primary" id="rushPremiumBuy" type="button" disabled aria-disabled="true">Acheter Premium — prochainement</button>
+<p style="opacity:.67;font-size:13px;line-height:1.4;margin-top:10px">Le bouton sera activé uniquement après intégration et contrôle du serveur CHK Paiements, authentification du compte client et vérification des achats Google. L'offre gratuite reste utilisable sans paiement.</p>
+</div>
 </section>
 
 <nav class="bottom-nav">
@@ -487,6 +495,35 @@ function renderCourses(){
    remaining.className='budget-rest';
    fill.style.width='0%';
    caption.textContent='Ajoute un budget pour suivre tes dépenses.';
+ }
+}
+function refreshRushPremiumCatalogue(){
+ const status=document.getElementById('rushPremiumStatus');
+ if(!status)return;
+ status.textContent='Vérification du produit Premium sur Google Play…';
+ if(typeof window.RushAndroid==='undefined' || typeof window.RushAndroid.refreshPremiumOffer!=='function'){
+   status.textContent='Catalogue natif disponible seulement dans une future version Android de Rush Studio.';
+   return;
+ }
+ try{window.RushAndroid.refreshPremiumOffer()}
+ catch(e){status.textContent='Consultation du catalogue indisponible.'}
+}
+function onRushPremiumOffer(payload){
+ const status=document.getElementById('rushPremiumStatus');
+ if(!status||!payload||typeof payload!=='object')return;
+ switch(payload.status){
+ case 'catalogue_found':
+   status.textContent='Produit détecté par Google Play ('+String(payload.displayPrice||'prix local indisponible')+'). Achat désactivé en attendant la validation serveur.';
+   break;
+ case 'product_not_published':
+   status.textContent='Produit Premium non publié dans Google Play Console. Aucune facturation active.';
+   break;
+ case 'play_store_unavailable':
+ case 'play_store_disconnected':
+   status.textContent='Google Play indisponible. Réessaie avec la version distribuée via Play Store.';
+   break;
+ default:
+   status.textContent='Paiement non activé : le serveur CHK Paiements doit d’abord vérifier les achats.';
  }
 }
 function isAndroid(){return typeof window.RushAndroid!=='undefined'}
