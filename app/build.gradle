@@ -1,3 +1,10 @@
+// Billing 9 apporte kotlin-stdlib récent ; les anciens jdk7/jdk8 1.6.x
+// contiennent des classes en doublon depuis Kotlin 1.8.
+configurations.configureEach {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+
 plugins {
     id 'com.android.application'
 }
