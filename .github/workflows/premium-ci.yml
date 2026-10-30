@@ -6,11 +6,15 @@ on:
     paths:
       - "app/**"
       - "index.html"
+      - "gradlew"
+      - "gradle/wrapper/**"
       - ".github/workflows/premium-ci.yml"
   pull_request:
     paths:
       - "app/**"
       - "index.html"
+      - "gradlew"
+      - "gradle/wrapper/**"
       - ".github/workflows/premium-ci.yml"
   workflow_dispatch:
 
