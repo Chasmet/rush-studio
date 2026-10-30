@@ -1,0 +1,40 @@
+name: Rush Studio AAB signe - piste interne
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Installer les outils
+        run: python3 -m pip install cryptography
+      - name: Restaurer la cle depuis la sauvegarde chiffree
+        env:
+          RESTORE_PASSWORD: ${{ secrets.RUSH_UPLOAD_RECOVERY_PASSWORD }}
+        run: |
+          test -n "$RESTORE_PASSWORD" || { echo 'Secret GitHub Actions absent'; exit 1; }
+          mkdir -p "$RUNNER_TEMP/rush-sign"
+          printf '%s\n' "$RESTORE_PASSWORD" | python3 security/keystore-backup/restore-rush-upload.py security/keystore-backup/rush-studio-upload-2026.jks.rsk1.b64 "$RUNNER_TEMP/rush-sign/upload.jks"
+          keytool -exportcert -rfc -keystore "$RUNNER_TEMP/rush-sign/upload.jks" -storepass "$RESTORE_PASSWORD" -alias upload -file "$RUNNER_TEMP/rush-sign/cert.pem"
+          FP=$(openssl x509 -in "$RUNNER_TEMP/rush-sign/cert.pem" -noout -fingerprint -sha1 | cut -d= -f2)
+          test "$FP" = 'BF:76:13:78:25:EE:89:10:39:E3:BB:BC:92:48:85:09:5A:9D:3A:CE'
+      - name: Compiler l'AAB signe
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/rush-sign/upload.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.RUSH_UPLOAD_RECOVERY_PASSWORD }}
+          ANDROID_KEY_ALIAS: upload
+          ANDROID_KEY_PASSWORD: ${{ secrets.RUSH_UPLOAD_RECOVERY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:bundleRelease --no-daemon -PversionCode=22001 -PversionName=2.2.1-internal
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-aab-signe-interne
+          path: app/build/outputs/bundle/release/app-release.aab
+          retention-days: 7
