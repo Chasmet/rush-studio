@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 public class MainActivity extends Activity {
     private WebView webView;
     private UpdateManager updateManager;
+    private PremiumBillingReader premiumBillingReader;
     private SharedPreferences prefs;
 
     @Override
@@ -53,6 +54,10 @@ public class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient());
         webView.addJavascriptInterface(new AndroidBridge(), "RushAndroid");
         webView.loadUrl("file:///android_asset/www/index.html");
+        // Prépare uniquement le catalogue Play : aucun paiement activé tant que
+        // le serveur CHK ne valide pas les achats et les périodes d’essai.
+        premiumBillingReader = new PremiumBillingReader(this, this::notifyPremiumOffer);
+        premiumBillingReader.start();
 
         if (prefs.getBoolean("auto_update", true)) {
             webView.postDelayed(() -> updateManager.checkForUpdate(false), 1600);
@@ -67,6 +72,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (premiumBillingReader != null) premiumBillingReader.destroy();
         if (updateManager != null) updateManager.destroy();
         if (webView != null) {
             webView.removeJavascriptInterface("RushAndroid");
@@ -103,6 +109,13 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void refreshPremiumOffer() {
+            runOnUiThread(() -> {
+                if (premiumBillingReader != null) premiumBillingReader.start();
+            });
+        }
+
+        @JavascriptInterface
         public void exportBackup(String json) {
             new Thread(() -> {
                 try {
@@ -119,6 +132,13 @@ public class MainActivity extends Activity {
                 }
             }).start();
         }
+    }
+
+    public void notifyPremiumOffer(String json) {
+        if (webView == null) return;
+        String safe = JSONObject.quote(json);
+        runOnUiThread(() -> webView.evaluateJavascript(
+            "if(window.onRushPremiumOffer){window.onRushPremiumOffer(JSON.parse(" + safe + "));}", null));
     }
 
     public void notifyWeb(String message) {
