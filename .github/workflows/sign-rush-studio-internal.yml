@@ -1,9 +1,6 @@
 name: Rush Studio AAB signe - piste interne
 on:
   workflow_dispatch:
-  push:
-    branches: [feature/freemium-3jours-playbilling]
-    paths: ['.github/workflows/sign-rush-studio-internal.yml']
 permissions:
   contents: read
 jobs:
