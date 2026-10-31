@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new AndroidBridge(), "RushAndroid");
         webView.loadUrl("file:///android_asset/www/index.html");
 
-        if (prefs.getBoolean("auto_update", true)) {
+        if (!RushPremiumBilling.fromPlayStore(this) && prefs.getBoolean("auto_update", true)) {
             webView.postDelayed(() -> updateManager.checkForUpdate(false), 1600);
         }
     }
@@ -65,7 +65,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (updateManager != null) updateManager.resumePendingInstall();
+        if (!RushPremiumBilling.fromPlayStore(this) && updateManager != null) {
+            updateManager.resumePendingInstall();
+        }
         if (premiumBilling != null) premiumBilling.refresh();
     }
 
@@ -131,7 +133,22 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void checkForUpdate() {
-            runOnUiThread(() -> updateManager.checkForUpdate(true));
+            runOnUiThread(() -> {
+                if (RushPremiumBilling.fromPlayStore(MainActivity.this)) {
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW,
+                            android.net.Uri.parse("market://details?id=" + getPackageName()));
+                        intent.setPackage("com.android.vending");
+                        startActivity(intent);
+                        notifyWeb("Mises à jour assurées par Google Play.");
+                    } catch (Exception error) {
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                            android.net.Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName())));
+                    }
+                } else {
+                    updateManager.checkForUpdate(true);
+                }
+            });
         }
 
         @JavascriptInterface
