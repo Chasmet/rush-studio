@@ -175,9 +175,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public int getAppVersionCode() { return BuildConfig.VERSION_CODE; }
 
         @JavascriptInterface public String getPremiumStateJson() {
-            return premiumManager == null ?
-                "{\\"state\\":\\"grace\\",\\"accessGranted\\":true}" :
-                premiumManager.snapshot();
+            return premiumManager == null ? "{}" : premiumManager.snapshot();
         }
         @JavascriptInterface public void purchasePremium() {
             runOnUiThread(() -> {
