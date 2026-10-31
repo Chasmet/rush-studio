@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private AdMobBannerManager adMobManager;
     private PlayUpdateManager playUpdateManager;
+    private RushPremiumManager premiumManager;
     private SharedPreferences prefs;
     private static final int REQUEST_EXPORT = 7401;
     private static final int REQUEST_IMPORT = 7402;
@@ -69,18 +70,22 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new AndroidBridge(), "RushAndroid");
         adMobManager = new AdMobBannerManager(this, findViewById(R.id.adContainer));
         playUpdateManager = new PlayUpdateManager(this);
+        premiumManager = new RushPremiumManager(this, getSharedPreferences("rush_premium", MODE_PRIVATE));
         webView.loadUrl("file:///android_asset/www/index.html");
         adMobManager.start();
+        premiumManager.start();
     }
 
     @Override protected void onResume() {
         super.onResume();
         if (playUpdateManager != null) playUpdateManager.checkDownloadedUpdate();
+        if (premiumManager != null) premiumManager.refresh();
     }
 
     @Override protected void onDestroy() {
         if (adMobManager != null) adMobManager.destroy();
         if (playUpdateManager != null) playUpdateManager.destroy();
+        if (premiumManager != null) premiumManager.destroy();
         if (webView != null) {
             webView.removeJavascriptInterface("RushAndroid");
             webView.destroy();
@@ -106,6 +111,13 @@ public class MainActivity extends Activity {
                 + ",\"message\":" + JSONObject.quote(message == null ? "" : message) + "}";
         runOnUiThread(() -> webView.evaluateJavascript(
                 "if(window.onAdsStatus)window.onAdsStatus(" + payload + ");", null));
+    }
+
+    public void notifyPremium(String json) {
+        if (webView == null) return;
+        String encoded = JSONObject.quote(json);
+        runOnUiThread(() -> webView.evaluateJavascript(
+            "if(window.onRushPremiumState){window.onRushPremiumState(JSON.parse(" + encoded + "));}", null));
     }
 
     public void notifyUpdate(String message, boolean ready) {
@@ -161,6 +173,22 @@ public class MainActivity extends Activity {
     public final class AndroidBridge {
         @JavascriptInterface public String getAppVersion() { return BuildConfig.VERSION_NAME; }
         @JavascriptInterface public int getAppVersionCode() { return BuildConfig.VERSION_CODE; }
+
+        @JavascriptInterface public String getPremiumStateJson() {
+            return premiumManager == null ?
+                "{\\"state\\":\\"grace\\",\\"accessGranted\\":true}" :
+                premiumManager.snapshot();
+        }
+        @JavascriptInterface public void purchasePremium() {
+            runOnUiThread(() -> {
+                if (premiumManager != null) premiumManager.purchase();
+            });
+        }
+        @JavascriptInterface public void restorePremium() {
+            runOnUiThread(() -> {
+                if (premiumManager != null) premiumManager.refresh();
+            });
+        }
 
         @JavascriptInterface public void showAdPrivacyOptions() {
             runOnUiThread(() -> {
