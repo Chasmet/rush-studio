@@ -1,0 +1,49 @@
+name: Rush Studio 2.3.70 - Build et validation Premium
+on:
+  push:
+    branches: [feature/rush-2370-trial-billing]
+    paths:
+      - "app/**"
+      - "index.html"
+      - ".github/workflows/play-premium-23070.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-premium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Préparer Gradle
+        run: chmod +x gradlew
+      - name: Compiler le correctif 2.3.70 code 23070
+        env:
+          ADMOB_APP_ID: ca-app-pub-8033777716855613~5451411809
+          ADMOB_BANNER_UNIT_ID: ca-app-pub-8033777716855613/6855072949
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon :app:bundleRelease :app:assembleDebug \
+            -PversionCode=23070 -PversionName=2.3.70
+          test -s app/build/outputs/bundle/release/app-release.aab
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          unzip -t app/build/outputs/bundle/release/app-release.aab >/dev/null
+      - name: Conserver APK de test et AAB non signé
+        uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-23070-premium-PREPARATION-NON-SIGNE
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/bundle/release/app-release.aab
+          retention-days: 7
+      - name: Synthèse
+        run: |
+          echo "Rush Studio 2.3.70 / versionCode 23070" >> "$GITHUB_STEP_SUMMARY"
+          echo "Le paiement Google Play reste désactivé sans vérification serveur HTTPS et produit actif." >> "$GITHUB_STEP_SUMMARY"
+          echo "L'AAB de ce workflow n'est pas signé et ne doit pas être envoyé dans Play Console." >> "$GITHUB_STEP_SUMMARY"
