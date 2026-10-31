@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 public class MainActivity extends Activity {
     private WebView webView;
     private UpdateManager updateManager;
+    private RushPremiumBilling premiumBilling;
     private SharedPreferences prefs;
 
     @Override
@@ -36,6 +37,8 @@ public class MainActivity extends Activity {
         prefs = getSharedPreferences("rush_settings", MODE_PRIVATE);
         webView = findViewById(R.id.webView);
         updateManager = new UpdateManager(this, webView, prefs);
+        premiumBilling = new RushPremiumBilling(this, prefs, this::notifyPremiumStatus);
+        premiumBilling.connect();
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -63,11 +66,13 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         if (updateManager != null) updateManager.resumePendingInstall();
+        if (premiumBilling != null) premiumBilling.refresh();
     }
 
     @Override
     protected void onDestroy() {
         if (updateManager != null) updateManager.destroy();
+        if (premiumBilling != null) premiumBilling.close();
         if (webView != null) {
             webView.removeJavascriptInterface("RushAndroid");
             webView.destroy();
@@ -81,7 +86,34 @@ public class MainActivity extends Activity {
         else super.onBackPressed();
     }
 
+    private void notifyPremiumStatus() {
+        if (webView == null || premiumBilling == null) return;
+        String json = premiumBilling.statusJson();
+        runOnUiThread(() -> {
+            if (webView != null && webView.getUrl() != null
+                && webView.getUrl().startsWith("file:///android_asset/www/")) {
+                webView.evaluateJavascript(
+                    "if(window.onRushPremiumStatus){window.onRushPremiumStatus(" + json + ");}", null);
+            }
+        });
+    }
+
     public final class AndroidBridge {
+        @JavascriptInterface
+        public String getPremiumStatus() {
+            return premiumBilling == null ? "{}" : premiumBilling.statusJson();
+        }
+
+        @JavascriptInterface
+        public void buyPremium() {
+            if (premiumBilling != null) runOnUiThread(() -> premiumBilling.buy());
+        }
+
+        @JavascriptInterface
+        public void restorePremium() {
+            if (premiumBilling != null) runOnUiThread(() -> premiumBilling.restore());
+        }
+
         @JavascriptInterface
         public String getAppVersion() {
             return BuildConfig.VERSION_NAME;
