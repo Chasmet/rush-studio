@@ -1,0 +1,100 @@
+name: Rush Studio 2.3.69 - Correctif Play (code 23069)
+on:
+  push:
+    branches:
+      - fix/rush-studio-23069-play-update
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-sign:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Récupérer la version publique conservant AdMob et sauvegardes
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Préparer Android 36 et Gradle
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)"
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-36"
+
+      - name: Compiler Android AAB 23069 sans clé privée dans le dépôt
+        env:
+          ADMOB_APP_ID: ca-app-pub-8033777716855613~5451411809
+          ADMOB_BANNER_UNIT_ID: ca-app-pub-8033777716855613/6855072949
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon :app:bundleRelease -PversionCode=23069 -PversionName=2.3.69
+          test -s app/build/outputs/bundle/release/app-release.aab
+          unzip -t app/build/outputs/bundle/release/app-release.aab >/dev/null
+
+      - name: Conserver un brouillon NON SIGNÉ en secours
+        uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-23069-non-signe-ne-pas-importer
+          path: app/build/outputs/bundle/release/app-release.aab
+          retention-days: 7
+
+      - name: Signer uniquement avec la clé officielle Rush Studio
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PWD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PWD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          RECOVERY_PWD: ${{ secrets.RUSH_UPLOAD_RECOVERY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYFILE="$RUNNER_TEMP/rush-upload.jks"
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$STORE_PWD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PWD" ]; then
+            printf '%s' "$KEYSTORE_B64" | base64 -d > "$KEYFILE"
+            ALIAS="$KEY_ALIAS"
+            PASS="$STORE_PWD"
+            KPASS="$KEY_PWD"
+          elif [ -n "$RECOVERY_PWD" ]; then
+            git fetch --depth=1 origin feature/freemium-3jours-playbilling
+            git show FETCH_HEAD:security/keystore-backup/restore-rush-upload.py > "$RUNNER_TEMP/restore-rush-upload.py"
+            git show FETCH_HEAD:security/keystore-backup/rush-studio-upload-2026.jks.rsk1.b64 > "$RUNNER_TEMP/backup.rsk1.b64"
+            python3 -m pip -q install cryptography
+            printf '%s\n' "$RECOVERY_PWD" | python3 "$RUNNER_TEMP/restore-rush-upload.py" "$RUNNER_TEMP/backup.rsk1.b64" "$KEYFILE"
+            ALIAS=upload
+            PASS="$RECOVERY_PWD"
+            KPASS="$RECOVERY_PWD"
+          else
+            echo "::error::Aucune clé d'envoi de production disponible dans les secrets CI. AAB compilé seulement, PAS publiable."
+            exit 1
+          fi
+          chmod 600 "$KEYFILE"
+          CERT_PEM="$RUNNER_TEMP/upload-cert.pem"
+          keytool -exportcert -rfc -keystore "$KEYFILE" -storepass "$PASS" -alias "$ALIAS" -file "$CERT_PEM" > /dev/null
+          FP="$(openssl x509 -in "$CERT_PEM" -noout -fingerprint -sha1 | cut -d= -f2)"
+          test "$FP" = 'BF:76:13:78:25:EE:89:10:39:E3:BB:BC:92:48:85:09:5A:9D:3A:CE' || { echo "::error::Certificat non identique à la clé d'envoi Google Play"; exit 1; }
+          mkdir -p dist
+          cp app/build/outputs/bundle/release/app-release.aab dist/Rush_Studio_2.3.69_23069_Google_Play.aab
+          jarsigner -keystore "$KEYFILE" -storepass "$PASS" -keypass "$KPASS" -sigalg SHA256withRSA -digestalg SHA-256 dist/Rush_Studio_2.3.69_23069_Google_Play.aab "$ALIAS"
+          jarsigner -verify -strict dist/Rush_Studio_2.3.69_23069_Google_Play.aab
+          unzip -t dist/Rush_Studio_2.3.69_23069_Google_Play.aab > /dev/null
+          rm -f "$KEYFILE" "$CERT_PEM" "$RUNNER_TEMP/backup.rsk1.b64"
+          echo "AAB versionCode 23069 signé et vérifié pour Google Play."
+
+      - name: Distribuer uniquement l'AAB signé et vérifié
+        uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-23069-aab-signe-google-play
+          path: dist/Rush_Studio_2.3.69_23069_Google_Play.aab
+          retention-days: 7
+          if-no-files-found: error
