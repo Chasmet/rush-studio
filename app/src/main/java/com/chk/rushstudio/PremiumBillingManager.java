@@ -47,6 +47,9 @@ public final class PremiumBillingManager {
     private String price = "";
     private String message = "";
     private boolean connected;
+    private volatile boolean verifierOnline;
+    private volatile boolean verifierChecking;
+    private long verifierLastCheck;
     private boolean checking;
     private boolean started;
 
@@ -79,7 +82,7 @@ public final class PremiumBillingManager {
     }
 
     private boolean canCharge() {
-        return connected && product != null && verifierConfigured();
+        return connected && product != null && verifierConfigured() && verifierOnline;
     }
 
     public boolean canUseFeatures() {
@@ -101,6 +104,7 @@ public final class PremiumBillingManager {
             json.put("canUse", canUseFeatures());
             json.put("checkoutReady", canCharge());
             json.put("billingConfigured", verifierConfigured());
+            json.put("verificationOnline", verifierOnline);
             json.put("message", message);
             json.put("state", owned ? "owned" : remaining > 0 ? "trial" : canCharge() ? "expired" : "configuration_pending");
         } catch (Exception ignored) {}
@@ -114,6 +118,7 @@ public final class PremiumBillingManager {
     public void start() {
         if (started) { refresh(); return; }
         started = true;
+        checkVerifierHealth();
         notifyUi();
         billing.startConnection(new BillingClientStateListener() {
             @Override public void onBillingSetupFinished(BillingResult result) {
@@ -135,6 +140,7 @@ public final class PremiumBillingManager {
     }
 
     public void refresh() {
+        checkVerifierHealth();
         if (!connected) {
             notifyUi();
             return;
@@ -186,6 +192,48 @@ public final class PremiumBillingManager {
                     notifyUi();
                 }
             });
+    }
+
+
+    /**
+     * Vérification préalable : ne jamais ouvrir la caisse si le service
+     * capable de valider un achat n'est pas réellement opérationnel.
+     */
+    private void checkVerifierHealth() {
+        if (!verifierConfigured()) { verifierOnline = false; return; }
+        long now = System.currentTimeMillis();
+        if (verifierChecking || (verifierOnline && now - verifierLastCheck < 120000L)) return;
+        verifierChecking = true;
+        verifierLastCheck = now;
+        new Thread(() -> {
+            boolean ready = false;
+            HttpURLConnection conn = null;
+            try {
+                URL endpoint = new URL(BuildConfig.PREMIUM_VERIFY_ENDPOINT);
+                URL health = new URL(endpoint.getProtocol(), endpoint.getHost(), endpoint.getPort(), "/health");
+                conn = (HttpURLConnection) health.openConnection();
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                if (conn.getResponseCode() == 200) {
+                    try (InputStream in = conn.getInputStream()) {
+                        byte[] data = new byte[2048];
+                        int n = in.read(data);
+                        if (n > 0) {
+                            JSONObject reply = new JSONObject(new String(data, 0, n, StandardCharsets.UTF_8));
+                            ready = reply.optBoolean("billingReady", false);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+            finally { if (conn != null) conn.disconnect(); }
+            boolean value = ready;
+            activity.runOnUiThread(() -> {
+                verifierOnline = value;
+                verifierChecking = false;
+                if (!value) message = "Validation des paiements momentanément indisponible : l'application reste accessible.";
+                notifyUi();
+            });
+        }, "rush-billing-health").start();
     }
 
     public void buy() {
