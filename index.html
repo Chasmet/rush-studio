@@ -234,6 +234,14 @@ button:active{transform:scale(.99)}.primary{background:linear-gradient(135deg,#f
 <button class="primary" onclick="checkForUpdate()">🔎 Vérifier maintenant</button>
 <div class="status" id="updateStatus"></div>
 </div>
+<div class="section orange" id="premiumPanel">
+<h2>★ Rush Studio Premium</h2>
+<p style="line-height:1.5;color:#f6d6aa">3 jours d'essai Premium gratuits, puis <strong>0,49 € TTC en un achat unique</strong> pour un accès permanent. Aucun abonnement, aucune facturation automatique.</p>
+<p class="status" id="premiumStatus" aria-live="polite">Vérification de l'accès Premium…</p>
+<button class="primary" id="premiumPurchaseButton" onclick="rushBuyPremium()">Débloquer Premium – 0,49 €</button>
+<button onclick="rushRestorePremium()">Restaurer mon achat</button>
+<p style="font-size:12px;opacity:.7;margin-top:10px">L'achat s'effectue exclusivement via Google Play. L'application de base reste gratuite et tes données ne sont jamais effacées.</p>
+</div>
 <div class="section">
 <h2>💾 Données</h2>
 <p style="opacity:.72;line-height:1.45">Rush Studio, Rush Affaires et Courses utilisent des stockages persistants séparés. Une mise à jour de l’application ne supprime pas tes données.</p>
@@ -294,6 +302,7 @@ function closeAffairForm(event){
  document.body.style.overflow='';
 }
 function addAffair(){
+ if(affairs.length>=5 && !rushPremiumAllows('affaires')) return;
  const title=document.getElementById('affairTitle').value.trim();
  if(!title)return;
  affairs.unshift({id:Date.now(),title:title,category:document.getElementById('affairCategory').value,priority:document.getElementById('affairPriority').value,notes:document.getElementById('affairNotes').value.trim(),done:false,created:new Date().toISOString()});
@@ -357,6 +366,9 @@ function addCourse(){
 
  const parts=raw.split(/[,;\n]+/).map(v=>parseCourseToken(v,defaultQty)).filter(v=>v.name);
  if(!parts.length){showCourseFeedback('Aucun article valide détecté.');return}
+ const known=new Set(courses.map(x=>normalizeCourseName(x.name)));
+ const added=new Set(parts.map(x=>normalizeCourseName(x.name)).filter(x=>!known.has(x)));
+ if(courses.length+added.size>20 && !rushPremiumAllows('articles de courses'))return;
 
  parts.forEach((entry,index)=>{
    const key=normalizeCourseName(entry.name);
@@ -490,7 +502,47 @@ function renderCourses(){
  }
 }
 function isAndroid(){return typeof window.RushAndroid!=='undefined'}
+function rushPremiumState(){
+ if(!isAndroid()||!window.RushAndroid.getPremiumStatus)return {full:true,play_install:false,trial_remaining_ms:0,owned:false};
+ try{return JSON.parse(window.RushAndroid.getPremiumStatus())}catch(e){return {full:true,play_install:false}}
+}
+function rushPremiumAllows(kind){
+ const state=rushPremiumState();
+ if(state.full)return true;
+ alert('Essai Premium de 3 jours terminé. Pour ajouter davantage de '+kind+', débloque Rush Studio Premium avec un achat unique de 0,49 € (sans abonnement). Tes données existantes restent disponibles.');
+ showPage('Settings');
+ return false;
+}
+function refreshPremiumCard(){
+ const state=rushPremiumState();
+ const status=document.getElementById('premiumStatus');
+ const button=document.getElementById('premiumPurchaseButton');
+ if(!status||!button)return;
+ if(!state.play_install){
+   status.textContent='Édition GitHub / navigateur : accès local complet. Les achats ne sont disponibles que dans la version Google Play.';
+   button.style.display='none';return;
+ }
+ button.style.display=state.owned?'none':'block';
+ if(state.owned)status.textContent='Premium acheté — accès permanent, achat restaurable après réinstallation.';
+ else if(state.trial_remaining_ms>0){
+   const days=Math.ceil(state.trial_remaining_ms/86400000);
+   status.textContent='Essai Premium actif : '+days+' jour(s) restant(s). Aucun prélèvement automatique.';
+ }else status.textContent='Essai terminé. La version gratuite reste utilisable, avec 5 affaires et 20 articles de courses maximum. L’accès Premium illimité coûte 0,49 € une seule fois.';
+ if(state.message)status.textContent+=' '+state.message;
+ if(state.price && state.price.includes('0,49'))button.textContent='Débloquer Premium – '+state.price;
+ button.disabled=(!state.billing_ready&&!state.owned);
+}
+function rushBuyPremium(){
+ if(!isAndroid()||!window.RushAndroid.buyPremium)return;
+ try{window.RushAndroid.buyPremium()}catch(e){alert('Impossible de lancer le paiement Google Play.')}
+}
+function rushRestorePremium(){
+ if(!isAndroid()||!window.RushAndroid.restorePremium)return;
+ try{window.RushAndroid.restorePremium()}catch(e){alert('Restauration indisponible.')}
+}
+window.onRushPremiumStatus=function(){refreshPremiumCard()};
 function refreshSettings(){
+ refreshPremiumCard();
  const auto=document.getElementById('autoUpdate');
  if(isAndroid()){
    try{auto.checked=window.RushAndroid.isAutoUpdateEnabled();document.getElementById('installedVersion').textContent=window.RushAndroid.getAppVersion()}catch(e){}
