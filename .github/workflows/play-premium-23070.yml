@@ -1,0 +1,98 @@
+name: Rush Studio 2.3.70 - Build et validation Premium
+on:
+  push:
+    branches: [feature/rush-2370-trial-billing]
+    paths:
+      - "app/**"
+      - "index.html"
+      - ".github/workflows/play-premium-23070.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-premium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Préparer Gradle
+        run: chmod +x gradlew
+      - name: Contrôler la syntaxe du serveur et de l'interface
+        run: |
+          node --check backend/rush-premium/server.mjs
+          node - <<'JS'
+          const fs=require('fs'), vm=require('vm');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+          if(!scripts.length)throw Error('No scripts in Rush Studio');
+          scripts.forEach(src=>new vm.Script(src,{filename:'rush-studio-index-inline.js'}));
+          if(!html.includes('rushPremiumStatus')||!html.includes('rushBuyButton'))throw Error('Premium UI missing');
+          console.log('HTML and backend JS syntax valid');
+          JS
+      - name: Compiler le correctif 2.3.70 code 23070
+        env:
+          ADMOB_APP_ID: ca-app-pub-8033777716855613~5451411809
+          ADMOB_BANNER_UNIT_ID: ca-app-pub-8033777716855613/6855072949
+          RUSH_PREMIUM_VERIFY_ENDPOINT: ${{ vars.RUSH_PREMIUM_VERIFY_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon :app:bundleRelease :app:assembleDebug \
+            -PversionCode=23070 -PversionName=2.3.70
+          test -s app/build/outputs/bundle/release/app-release.aab
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          unzip -t app/build/outputs/bundle/release/app-release.aab >/dev/null
+      - name: Conserver APK de test et AAB non signé
+        uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-23070-premium-PREPARATION-NON-SIGNE
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/bundle/release/app-release.aab
+          retention-days: 7
+      - name: Signer avec la clé d'envoi officielle si le secret est configuré
+        shell: bash
+        env:
+          RECOVERY_PASSWORD: ${{ secrets.RUSH_UPLOAD_RECOVERY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RECOVERY_PASSWORD" ]; then
+            echo "::notice::Signature indisponible : ajouter RUSH_UPLOAD_RECOVERY_PASSWORD dans les secrets GitHub Actions."
+            exit 0
+          fi
+          git fetch --depth=1 origin feature/freemium-3jours-playbilling
+          mkdir -p "$RUNNER_TEMP/rush-signer" dist
+          git show FETCH_HEAD:security/keystore-backup/restore-rush-upload.py > "$RUNNER_TEMP/rush-signer/restore.py"
+          git show FETCH_HEAD:security/keystore-backup/rush-studio-upload-2026.jks.rsk1.b64 > "$RUNNER_TEMP/rush-signer/backup.b64"
+          python3 -m pip -q install cryptography
+          printf '%s\n' "$RECOVERY_PASSWORD" | python3 "$RUNNER_TEMP/rush-signer/restore.py" "$RUNNER_TEMP/rush-signer/backup.b64" "$RUNNER_TEMP/rush-signer/upload.jks"
+          trap 'rm -f "$RUNNER_TEMP/rush-signer/upload.jks" "$RUNNER_TEMP/rush-signer/backup.b64"' EXIT
+          keytool -exportcert -rfc -keystore "$RUNNER_TEMP/rush-signer/upload.jks" \
+            -storepass "$RECOVERY_PASSWORD" -alias upload -file "$RUNNER_TEMP/rush-signer/upload.pem"
+          FP="$(openssl x509 -in "$RUNNER_TEMP/rush-signer/upload.pem" -noout -fingerprint -sha1 | cut -d= -f2)"
+          test "$FP" = 'BF:76:13:78:25:EE:89:10:39:E3:BB:BC:92:48:85:09:5A:9D:3A:CE'
+          cp app/build/outputs/bundle/release/app-release.aab dist/Rush_Studio_2.3.70_23070_Signe.aab
+          jarsigner -keystore "$RUNNER_TEMP/rush-signer/upload.jks" \
+            -storepass "$RECOVERY_PASSWORD" -keypass "$RECOVERY_PASSWORD" \
+            -sigalg SHA256withRSA -digestalg SHA-256 \
+            dist/Rush_Studio_2.3.70_23070_Signe.aab upload
+          jarsigner -verify -strict dist/Rush_Studio_2.3.70_23070_Signe.aab
+          unzip -t dist/Rush_Studio_2.3.70_23070_Signe.aab >/dev/null
+          rm -f "$RUNNER_TEMP/rush-signer/upload.pem"
+      - name: Conserver l'AAB signé si disponible
+        if: ${{ hashFiles('dist/*.aab') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-23070-aab-SIGNE
+          path: dist/Rush_Studio_2.3.70_23070_Signe.aab
+          retention-days: 7
+      - name: Synthèse
+        run: |
+          echo "Rush Studio 2.3.70 / versionCode 23070" >> "$GITHUB_STEP_SUMMARY"
+          echo "Le paiement Google Play reste désactivé sans vérification serveur HTTPS et produit actif." >> "$GITHUB_STEP_SUMMARY"
+          echo "L'AAB de ce workflow n'est pas signé et ne doit pas être envoyé dans Play Console." >> "$GITHUB_STEP_SUMMARY"
