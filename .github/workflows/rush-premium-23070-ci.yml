@@ -1,0 +1,58 @@
+name: Rush Studio 2.3.70 - Validation essai et Google Play Billing
+on:
+  push:
+    branches:
+      - feature/rush-studio-23070-trial-billing
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify inline JavaScript and billing configuration
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html=Path('index.html').read_text()
+          scripts=re.findall(r'<script(?:\\s[^>]*)?>(.*?)</script>',html,flags=re.S|re.I)
+          assert scripts, 'No inline script'
+          Path('/tmp/rush-studio-23070.js').write_text('\\n'.join(scripts))
+          assert 'rush_premium' in Path('app/src/main/java/com/chk/rushstudio/RushPremiumManager.java').read_text()
+          assert 'TRIAL_MS = 72L' in Path('app/src/main/java/com/chk/rushstudio/RushPremiumManager.java').read_text()
+          PY
+          node --check /tmp/rush-studio-23070.js
+
+      - name: Prepare Gradle
+        run: chmod +x gradlew
+
+      - name: Build Android 2.3.70 / 23070
+        env:
+          ADMOB_APP_ID: ca-app-pub-8033777716855613~5451411809
+          ADMOB_BANNER_UNIT_ID: ca-app-pub-8033777716855613/6855072949
+        run: |
+          set -e
+          ./gradlew --no-daemon :app:assembleDebug :app:bundleRelease -PversionCode=23070 -PversionName=2.3.70
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          test -s app/build/outputs/bundle/release/app-release.aab
+          unzip -t app/build/outputs/bundle/release/app-release.aab >/dev/null
+
+      - name: Archive test APK and UNSIGNED AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-23070-unsigned-build-only
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/bundle/release/app-release.aab
+          retention-days: 7
