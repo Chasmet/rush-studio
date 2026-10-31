@@ -174,7 +174,17 @@ public final class PremiumBillingManager {
                         break;
                     }
                 }
-                message = product == null ? "Le produit rush_premium n'est pas disponible sur Google Play." :
+                boolean incorrectPrice = false;
+                if (product != null) {
+                    ProductDetails.OneTimePurchaseOfferDetails offer =
+                        product.getOneTimePurchaseOfferDetailsList().get(0);
+                    // Évite une facturation accidentelle au mauvais tarif dans les pays EUR.
+                    incorrectPrice = "EUR".equals(offer.getPriceCurrencyCode())
+                        && offer.getPriceAmountMicros() != 490000L;
+                }
+                if (incorrectPrice) product = null;
+                message = incorrectPrice ? "Le tarif Google Play en euros ne correspond pas à 0,49 €. Achat désactivé jusqu'à correction." :
+                    product == null ? "Le produit rush_premium n'est pas disponible sur Google Play." :
                     verifierConfigured() ? "" : "Validation sécurisée des achats non configurée. Aucun paiement ne sera déclenché.";
                 notifyUi();
             });
