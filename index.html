@@ -72,6 +72,14 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 .news-item{padding:11px 0;border-top:1px solid #292a30;font-size:13px;line-height:1.5;color:#e0e0e3}
 .news-item:first-of-type{border-top:0}
 @media(max-width:380px){.logo-text h1{font-size:27px}.row{grid-template-columns:1fr}.persist-chip{display:none}.courses-form{grid-template-columns:1fr 70px}.courses-form .course-price-input{grid-column:1/3}.nav-btn{font-size:10px}}
+.premium-panel{border:1px solid #d58b1d;background:linear-gradient(135deg,#231a12,#13151a);border-radius:22px;padding:20px;margin-bottom:18px}
+.premium-title{font-size:24px;font-weight:800;margin:5px 0 10px;color:#ffbc49}
+.premium-status{font-size:15px;line-height:1.5;margin:10px 0;color:#efefef}
+.premium-sub{font-size:13px;color:#cfc5b3;line-height:1.6}
+.premium-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.premium-actions button{flex:1;min-width:155px}
+.premium-actions button:disabled{opacity:.45;cursor:not-allowed}
+.premium-price{font-weight:800;font-size:21px;color:#ffbb41}
 </style>
 </head>
 <body>
@@ -252,16 +260,28 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="logo" style="background:linear-gradient(135deg,#646464,#222)">⚙️</div>
 <div class="logo-text">
 <h1>Réglages</h1>
-<p>Application gratuite, confidentialité et mises à jour</p><div class="brandline">par Sync 30 Numérique</div>
+<p>Essai gratuit, Premium et mises à jour</p><div class="brandline">par Sync 30 Numérique</div>
 </div>
 </div>
 <div class="section free-card" id="freeSection">
-<div class="brand-overline">RUSH STUDIO GRATUIT</div>
-<h2>Toutes les fonctionnalités, sans paiement</h2>
-<p class="small-muted">Affaires et listes de courses illimitées. Les publicités discrètes contribuent à maintenir l'application gratuite.</p>
-<ul class="perks"><li>Affaires illimitées</li><li>Liste de courses illimitée</li><li>Pas d'abonnement ni d'achat intégré requis</li><li>Tes données d'organisation restent sur ton appareil</li></ul>
+<div class="brand-overline">RUSH STUDIO PREMIUM</div>
+<h2>3 jours d'essai gratuit, puis 0,49 €</h2>
+<p class="small-muted">Profite de toutes les fonctionnalités pendant 72 heures. Après l'essai, achète l'accès définitif une seule fois, directement avec Google Play.</p>
+<ul class="perks"><li>Essai gratuit sans carte bancaire requise</li><li>Achat unique à 0,49 € en France</li><li>Aucun abonnement, aucun prélèvement automatique</li><li>Achats restaurables sur ton compte Google Play</li></ul>
 <div class="status" id="adsStatus" aria-live="polite">Publicités en préparation. L'application reste utilisable gratuitement.</div>
 <button id="adPrivacyButton" style="display:none" onclick="manageAdPrivacy()">Mes choix de confidentialité publicitaire</button>
+</div>
+<div class="premium-panel" id="premiumCard">
+  <div class="brand-overline">MON ACCÈS RUSH STUDIO</div>
+  <div class="premium-title" id="premiumHeadline">Vérification de l'essai gratuit…</div>
+  <div class="premium-status" id="premiumStateText">Connexion à Google Play en cours.</div>
+  <div class="premium-price" id="premiumPrice">0,49 € · achat unique</div>
+  <div class="premium-sub">Aucun paiement automatique au bout des 3 jours. Le paiement est demandé uniquement si tu cliques sur « Acheter Premium ». Sans paiement après l'essai, les fonctions principales sont verrouillées ; l'export des données reste disponible dans les réglages.</div>
+  <div class="premium-actions">
+    <button class="primary" id="premiumBuyButton" onclick="buyRushPremium()" disabled>Acheter Premium</button>
+    <button onclick="restoreRushPremium()">Restaurer mon achat</button>
+  </div>
+  <div class="status" id="premiumBillingMessage" aria-live="polite"></div>
 </div>
 <div class="section orange">
 <h2>Mises à jour</h2>
@@ -273,7 +293,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 </div>
 <div class="section">
 <h2>Nouveautés</h2>
-<div class="news-item"><b>Rush Studio gratuit</b> · Toutes les fonctionnalités accessibles et préparation de publicités discrètes.</div>
+<div class="news-item"><b>Premium Rush Studio</b> · 3 jours gratuits, puis achat unique Google Play à 0,49 € en France, sans renouvellement.</div>
 <div class="news-item">Tes listes, tâches et affaires restent enregistrées lors des mises à jour.</div>
 </div>
 <div class="section">
@@ -305,7 +325,66 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="brand-footer">Rush Studio · une application <b>Sync 30 Numérique</b></div>
 
 <script>
-const WEB_VERSION='2.2.0';
+const WEB_VERSION='2.3.70';
+let rushPremiumAccess=true;
+let rushPremiumState=null;
+function onRushPremiumState(raw){
+  try{
+    const state=(typeof raw==='string')?JSON.parse(raw):raw;
+    if(!state || typeof state!=='object')return;
+    rushPremiumState=state;
+    rushPremiumAccess=!!state.accessGranted;
+    const title=document.getElementById('premiumHeadline');
+    const description=document.getElementById('premiumStateText');
+    const priceEl=document.getElementById('premiumPrice');
+    const btn=document.getElementById('premiumBuyButton');
+    const msg=document.getElementById('premiumBillingMessage');
+    if(!title || !description || !btn)return;
+    if(state.state==='paid'){
+      title.textContent='Premium actif définitivement';
+      description.textContent='Ton achat Google Play est reconnu. Tu as accès à toutes les fonctionnalités.';
+    }else if(state.state==='trial'){
+      const hours=Math.ceil(Math.max(0,Number(state.remainingMs)||0)/3600000);
+      title.textContent='Essai gratuit : '+hours+' h restantes';
+      description.textContent='Toutes les fonctionnalités sont actives pendant ton essai. Aucun achat ne sera débité automatiquement.';
+    }else if(state.state==='grace'){
+      title.textContent='Accès maintenu temporairement';
+      description.textContent="Google Play ne propose pas encore l'achat. Tes fonctions restent accessibles pour éviter un blocage injustifié.";
+    }else{
+      title.textContent='Essai terminé';
+      description.textContent='Pour retrouver les fonctions Rush Studio, effectue l’achat unique sur Google Play. Tes données ne sont pas supprimées.';
+    }
+    priceEl.textContent=(state.price||'0,49 €')+' · achat unique';
+    btn.disabled=!!state.paid || !state.checkoutEnabled;
+    btn.style.display=state.paid?'none':'';
+    btn.textContent=state.checkoutEnabled?'Acheter Premium':'Achat Google Play indisponible';
+    msg.textContent=state.message||'';
+    if(!rushPremiumAccess){
+      showPage('Settings');
+      const card=document.getElementById('premiumCard');
+      if(card)card.scrollIntoView({block:'start',behavior:'smooth'});
+    }
+  }catch(e){}
+}
+function refreshRushPremium(){
+  if(!isAndroid()||typeof window.RushAndroid.getPremiumStateJson!=='function'){
+    onRushPremiumState({state:'grace',accessGranted:true,checkoutEnabled:false,price:'0,49 €',message:'Prévisualisation web : achat disponible dans l’application Android.'});
+    return;
+  }
+  try{onRushPremiumState(window.RushAndroid.getPremiumStateJson());}catch(e){}
+}
+function buyRushPremium(){
+  if(!isAndroid()||typeof window.RushAndroid.purchasePremium!=='function')return;
+  const btn=document.getElementById('premiumBuyButton');
+  if(btn)btn.disabled=true;
+  try{window.RushAndroid.purchasePremium();}finally{setTimeout(refreshRushPremium,900);}
+}
+function restoreRushPremium(){
+  if(!isAndroid()||typeof window.RushAndroid.restorePremium!=='function')return;
+  document.getElementById('premiumBillingMessage').textContent='Restauration des achats Google Play…';
+  window.RushAndroid.restorePremium();
+}
+
 // Activer uniquement après la première publication effective sur Google Play.
 function isPlayInstalled(){
   if(!isAndroid())return false;
@@ -362,6 +441,7 @@ function updateProgress(){const all=[...data[today].business,...data[today].crea
 function updateStreaks(){let english=0,music=0,shop=0;Object.keys(data).forEach(day=>{const d=data[day];if(d.mental&&d.mental.some(t=>t.done))english++;if(d.creative&&d.creative.some(t=>t.done))music++;if(d.business&&d.business.some(t=>t.done))shop++});document.getElementById('english').innerText=english;document.getElementById('music').innerText=music;document.getElementById('shop').innerText=shop}
 
 function showPage(name){
+ if(name!=='Settings'&&!rushPremiumAccess){name='Settings';}
  localStorage.setItem('rushLastPage',name);
  ['Studio','Affaires','Courses','Settings'].forEach(n=>{document.getElementById('page'+n).classList.toggle('active',n===name);document.getElementById('nav'+n).classList.toggle('active',n===name)});
  window.scrollTo(0,0);
@@ -629,7 +709,7 @@ function onAndroidUpdateStatus(message,ready){
 }
 
 function render(){renderTasks('business','business','green');renderTasks('creative','creative','purple');renderTasks('mental','mental','blue');renderTasks('extra','extra','orange');updateProgress();updateStreaks()}
-render();renderAffairs();renderCourses();save();saveCourses();refreshSettings();
+render();renderAffairs();renderCourses();save();saveCourses();refreshSettings();refreshRushPremium();
 const courseNameInput=document.getElementById('courseName');
 if(courseNameInput)courseNameInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addCourse()}});
 const extraInput=document.getElementById('extraInput');
