@@ -271,7 +271,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="section orange">
 <h2>Mises à jour</h2>
 <p class="small-muted">Vérifie les nouvelles versions et lance leur installation directement depuis Rush Studio, avec le système officiel de Google Play. Tes données restent conservées.</p>
-<div class="version-line" style="margin-top:12px">Version installée : <strong id="installedVersion">2.2.0</strong> <span id="installedVersionCode" class="small-muted"></span></div>
+<div class="version-line" style="margin-top:12px">Version installée : <strong id="installedVersion">2.3.70</strong> <span id="installedVersionCode" class="small-muted"></span></div>
 <button class="primary" onclick="checkForUpdate()">Vérifier les mises à jour</button>
 <button class="primary" id="completeUpdateButton" style="display:none" onclick="completeUpdate()">Installer et redémarrer</button>
 <div class="status" id="updateStatus" aria-live="polite"></div>
@@ -310,7 +310,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="brand-footer">Rush Studio · une application <b>Sync 30 Numérique</b></div>
 
 <script>
-const WEB_VERSION='2.2.0';
+const WEB_VERSION='2.3.70';
 // Activer uniquement après la première publication effective sur Google Play.
 function isPlayInstalled(){
   if(!isAndroid())return false;
