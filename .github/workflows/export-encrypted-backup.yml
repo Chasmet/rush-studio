@@ -1,0 +1,22 @@
+name: Rush Studio - Exporter sauvegarde chiffree pour signature privee
+on:
+  push:
+    branches: [feature/freemium-3jours-playbilling]
+    paths: [.github/workflows/export-encrypted-backup.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  encrypted-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirmer que seule la sauvegarde chiffree est exportee
+        run: |
+          grep -q 'BEGIN RUSH STUDIO ENCRYPTED KEYSTORE' security/keystore-backup/rush-studio-upload-2026.jks.rsk1.b64
+          test ! -e security/keystore-backup/rush-studio-upload-2026.jks
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rush-studio-encrypted-backup-only
+          path: security/keystore-backup/rush-studio-upload-2026.jks.rsk1.b64
+          retention-days: 1

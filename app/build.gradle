@@ -2,6 +2,14 @@ plugins {
     id 'com.android.application'
 }
 
+// Billing 9 apporte kotlin-stdlib récent ; les anciens jdk7/jdk8 1.6.x
+// contiennent des classes en doublon depuis Kotlin 1.8.
+configurations.configureEach {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+
+
 def ciVersionCode = providers.gradleProperty('versionCode').orNull
 def ciVersionName = providers.gradleProperty('versionName').orNull
 
@@ -11,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId "com.chk.rushstudio"
-        minSdk 21
+        minSdk 24
         targetSdk 36
         versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 21000
         versionName ciVersionName != null ? ciVersionName : "2.1.0"
@@ -70,4 +78,5 @@ preBuild.dependsOn(syncWebAssets)
 
 dependencies {
     implementation 'androidx.core:core:1.13.1'
+    implementation 'com.android.billingclient:billing:9.1.0'
 }
