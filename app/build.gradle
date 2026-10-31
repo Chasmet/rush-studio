@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId "com.chk.rushstudio"
-        minSdk 23
+        minSdk 24
         targetSdk 36
         versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 21000
         versionName ciVersionName != null ? ciVersionName : "2.1.0"
