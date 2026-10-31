@@ -1,4 +1,4 @@
-name: Rush Studio - Preparer AAB pour Google Play interne
+name: Rush Studio - Preparer AAB 22064 pour Google Play interne
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       - name: Preparer Gradle
         run: chmod +x gradlew
       - name: Compiler un AAB non signe (verification uniquement)
-        run: ./gradlew :app:bundleRelease -PversionCode=22001 -PversionName=2.2.1-preparation --no-daemon
+        run: ./gradlew :app:bundleRelease -PversionCode=22064 -PversionName=2.2.64-interne --no-daemon
       - name: Verifier le bundle
         run: test -s app/build/outputs/bundle/release/app-release.aab
       - name: Conserver le bundle non signe (NE PAS envoyer a Google Play)
