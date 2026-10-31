@@ -56,9 +56,9 @@ public final class PremiumBillingManager {
     public PremiumBillingManager(MainActivity activity) {
         this.activity = activity;
         this.prefs = activity.getSharedPreferences("rush_premium_v1", Context.MODE_PRIVATE);
-        if (!prefs.contains(KEY_STARTED)) {
+        if (!prefs.contains("install_id")) {
             long now = System.currentTimeMillis();
-            prefs.edit().putLong(KEY_STARTED, now).putLong(KEY_LAST_SEEN, now)
+            prefs.edit().putLong(KEY_LAST_SEEN, now)
                 .putString("install_id", UUID.randomUUID().toString()).apply();
         }
         billing = BillingClient.newBuilder(activity)
@@ -82,11 +82,19 @@ public final class PremiumBillingManager {
     }
 
     private boolean canCharge() {
-        return connected && product != null && verifierConfigured() && verifierOnline;
+        boolean ready = connected && product != null && verifierConfigured() && verifierOnline;
+        // Ne commencer l'essai qu'une fois l'achat réellement possible.
+        // Un produit en préparation ne peut pas réduire les 72 h offertes.
+        if (ready && !prefs.contains(KEY_STARTED)) {
+            prefs.edit().putLong(KEY_STARTED, monotonicWallTime()).apply();
+        }
+        return ready;
     }
 
     public boolean canUseFeatures() {
-        long remaining = prefs.getLong(KEY_STARTED, monotonicWallTime()) + TRIAL_MS - monotonicWallTime();
+        boolean ready = canCharge();
+        long remaining = !prefs.contains(KEY_STARTED) ? TRIAL_MS :
+            prefs.getLong(KEY_STARTED, 0L) + TRIAL_MS - monotonicWallTime();
         // Tant que le catalogue ET le vérificateur ne fonctionnent pas,
         // continuer à fournir l'accès : ne jamais verrouiller une app sans paiement possible.
         return prefs.getBoolean(KEY_OWNED, false) || remaining > 0 || !canCharge();
@@ -95,7 +103,9 @@ public final class PremiumBillingManager {
     public String status() {
         JSONObject json = new JSONObject();
         try {
-            long remaining = Math.max(0, prefs.getLong(KEY_STARTED, monotonicWallTime()) + TRIAL_MS - monotonicWallTime());
+            boolean ready = canCharge();
+            long remaining = !prefs.contains(KEY_STARTED) ? TRIAL_MS :
+                Math.max(0, prefs.getLong(KEY_STARTED, 0L) + TRIAL_MS - monotonicWallTime());
             boolean owned = prefs.getBoolean(KEY_OWNED, false);
             json.put("sku", PRODUCT_ID);
             json.put("price", price);
@@ -106,7 +116,7 @@ public final class PremiumBillingManager {
             json.put("billingConfigured", verifierConfigured());
             json.put("verificationOnline", verifierOnline);
             json.put("message", message);
-            json.put("state", owned ? "owned" : remaining > 0 ? "trial" : canCharge() ? "expired" : "configuration_pending");
+            json.put("state", owned ? "owned" : !ready ? "configuration_pending" : remaining > 0 ? "trial" : "expired");
         } catch (Exception ignored) {}
         return json.toString();
     }
