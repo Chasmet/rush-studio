@@ -4,6 +4,9 @@ plugins {
 
 def ciVersionCode = providers.gradleProperty('versionCode').orNull
 def ciVersionName = providers.gradleProperty('versionName').orNull
+// URL publique HTTPS du vérificateur, jamais de clé Google Play dans l'APK.
+def premiumVerifyEndpoint = (System.getenv('RUSH_PREMIUM_VERIFY_ENDPOINT') ?: '').trim()
+if (premiumVerifyEndpoint && !premiumVerifyEndpoint.startsWith('https://')) throw new GradleException('RUSH_PREMIUM_VERIFY_ENDPOINT must use HTTPS')
 
 // Les identifiants réels doivent venir de la configuration CI, jamais être inventés.
 def admobAppId = (System.getenv('ADMOB_APP_ID') ?: '').trim()
@@ -21,6 +24,7 @@ android {
         targetSdk 36
         versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 22000
         versionName ciVersionName != null ? ciVersionName : "2.2.0"
+        buildConfigField 'String', 'PREMIUM_VERIFY_ENDPOINT', '"' + premiumVerifyEndpoint.replace('"', '') + '"'
         buildConfigField 'boolean', 'ADMOB_READY', admobReady.toString()
         buildConfigField 'String', 'ADMOB_BANNER_UNIT_ID', '"' + (admobReady ? admobBannerId : '') + '"'
     }
@@ -87,4 +91,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-ads:25.5.0'
     implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
     implementation 'com.google.android.play:app-update:2.1.0'
+    implementation 'com.android.billingclient:billing:9.1.0'
 }
