@@ -88,7 +88,8 @@ const server = http.createServer(async (req,res) => {
       if (!configured) return json(res,200,{ok:true,billingReady:false});
       try {
         await oauthToken();
-        await db.query('select 1');
+        const relation = await db.query("select to_regclass('public.rush_premium_purchases') as table_name");
+        if (!relation.rows?.[0]?.table_name) throw new Error('Billing schema missing');
         return json(res,200,{ok:true,billingReady:true});
       } catch { return json(res,200,{ok:true,billingReady:false}); }
     }
