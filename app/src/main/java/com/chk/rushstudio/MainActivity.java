@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private AdMobBannerManager adMobManager;
     private PlayUpdateManager playUpdateManager;
+    private PremiumBillingManager premiumBillingManager;
     private SharedPreferences prefs;
     private static final int REQUEST_EXPORT = 7401;
     private static final int REQUEST_IMPORT = 7402;
@@ -69,18 +70,22 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new AndroidBridge(), "RushAndroid");
         adMobManager = new AdMobBannerManager(this, findViewById(R.id.adContainer));
         playUpdateManager = new PlayUpdateManager(this);
+        premiumBillingManager = new PremiumBillingManager(this);
         webView.loadUrl("file:///android_asset/www/index.html");
         adMobManager.start();
+        premiumBillingManager.start();
     }
 
     @Override protected void onResume() {
         super.onResume();
         if (playUpdateManager != null) playUpdateManager.checkDownloadedUpdate();
+        if (premiumBillingManager != null) premiumBillingManager.refresh();
     }
 
     @Override protected void onDestroy() {
         if (adMobManager != null) adMobManager.destroy();
         if (playUpdateManager != null) playUpdateManager.destroy();
+        if (premiumBillingManager != null) premiumBillingManager.destroy();
         if (webView != null) {
             webView.removeJavascriptInterface("RushAndroid");
             webView.destroy();
@@ -106,6 +111,13 @@ public class MainActivity extends Activity {
                 + ",\"message\":" + JSONObject.quote(message == null ? "" : message) + "}";
         runOnUiThread(() -> webView.evaluateJavascript(
                 "if(window.onAdsStatus)window.onAdsStatus(" + payload + ");", null));
+    }
+
+    public void notifyPremiumStatus(String json) {
+        if (webView == null) return;
+        String safe = JSONObject.quote(json);
+        runOnUiThread(() -> webView.evaluateJavascript(
+            "if(window.onRushPremiumStatus)window.onRushPremiumStatus(JSON.parse(" + safe + "));", null));
     }
 
     public void notifyUpdate(String message, boolean ready) {
@@ -161,6 +173,22 @@ public class MainActivity extends Activity {
     public final class AndroidBridge {
         @JavascriptInterface public String getAppVersion() { return BuildConfig.VERSION_NAME; }
         @JavascriptInterface public int getAppVersionCode() { return BuildConfig.VERSION_CODE; }
+
+        @JavascriptInterface public String getPremiumStatus() {
+            return premiumBillingManager != null ? premiumBillingManager.status() : "{}";
+        }
+
+        @JavascriptInterface public boolean canUsePremiumFeatures() {
+            return premiumBillingManager == null || premiumBillingManager.canUseFeatures();
+        }
+
+        @JavascriptInterface public void refreshPremiumOffer() {
+            runOnUiThread(() -> { if (premiumBillingManager != null) premiumBillingManager.refresh(); });
+        }
+
+        @JavascriptInterface public void purchasePremium() {
+            runOnUiThread(() -> { if (premiumBillingManager != null) premiumBillingManager.buy(); });
+        }
 
         @JavascriptInterface public void showAdPrivacyOptions() {
             runOnUiThread(() -> {
