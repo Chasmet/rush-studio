@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.chk.rushstudio"
-        minSdk 21
+        minSdk 24
         targetSdk 36
         versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 21000
         versionName ciVersionName != null ? ciVersionName : "2.1.0"
@@ -70,4 +70,5 @@ preBuild.dependsOn(syncWebAssets)
 
 dependencies {
     implementation 'androidx.core:core:1.13.1'
+    implementation 'com.android.billingclient:billing:9.1.0'
 }

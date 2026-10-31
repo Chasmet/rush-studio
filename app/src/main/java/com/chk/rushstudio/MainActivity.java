@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 public class MainActivity extends Activity {
     private WebView webView;
     private UpdateManager updateManager;
+    private RushPremiumBilling premiumBilling;
     private SharedPreferences prefs;
 
     @Override
@@ -36,6 +37,8 @@ public class MainActivity extends Activity {
         prefs = getSharedPreferences("rush_settings", MODE_PRIVATE);
         webView = findViewById(R.id.webView);
         updateManager = new UpdateManager(this, webView, prefs);
+        premiumBilling = new RushPremiumBilling(this, prefs, this::notifyPremiumStatus);
+        premiumBilling.connect();
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -54,7 +57,7 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new AndroidBridge(), "RushAndroid");
         webView.loadUrl("file:///android_asset/www/index.html");
 
-        if (prefs.getBoolean("auto_update", true)) {
+        if (!RushPremiumBilling.fromPlayStore(this) && prefs.getBoolean("auto_update", true)) {
             webView.postDelayed(() -> updateManager.checkForUpdate(false), 1600);
         }
     }
@@ -62,12 +65,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (updateManager != null) updateManager.resumePendingInstall();
+        if (!RushPremiumBilling.fromPlayStore(this) && updateManager != null) {
+            updateManager.resumePendingInstall();
+        }
+        if (premiumBilling != null) premiumBilling.refresh();
     }
 
     @Override
     protected void onDestroy() {
         if (updateManager != null) updateManager.destroy();
+        if (premiumBilling != null) premiumBilling.close();
         if (webView != null) {
             webView.removeJavascriptInterface("RushAndroid");
             webView.destroy();
@@ -81,7 +88,34 @@ public class MainActivity extends Activity {
         else super.onBackPressed();
     }
 
+    private void notifyPremiumStatus() {
+        if (webView == null || premiumBilling == null) return;
+        String json = premiumBilling.statusJson();
+        runOnUiThread(() -> {
+            if (webView != null && webView.getUrl() != null
+                && webView.getUrl().startsWith("file:///android_asset/www/")) {
+                webView.evaluateJavascript(
+                    "if(window.onRushPremiumStatus){window.onRushPremiumStatus(" + json + ");}", null);
+            }
+        });
+    }
+
     public final class AndroidBridge {
+        @JavascriptInterface
+        public String getPremiumStatus() {
+            return premiumBilling == null ? "{}" : premiumBilling.statusJson();
+        }
+
+        @JavascriptInterface
+        public void buyPremium() {
+            if (premiumBilling != null) runOnUiThread(() -> premiumBilling.buy());
+        }
+
+        @JavascriptInterface
+        public void restorePremium() {
+            if (premiumBilling != null) runOnUiThread(() -> premiumBilling.restore());
+        }
+
         @JavascriptInterface
         public String getAppVersion() {
             return BuildConfig.VERSION_NAME;
@@ -99,7 +133,22 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void checkForUpdate() {
-            runOnUiThread(() -> updateManager.checkForUpdate(true));
+            runOnUiThread(() -> {
+                if (RushPremiumBilling.fromPlayStore(MainActivity.this)) {
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW,
+                            android.net.Uri.parse("market://details?id=" + getPackageName()));
+                        intent.setPackage("com.android.vending");
+                        startActivity(intent);
+                        notifyWeb("Mises à jour assurées par Google Play.");
+                    } catch (Exception error) {
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                            android.net.Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName())));
+                    }
+                } else {
+                    updateManager.checkForUpdate(true);
+                }
+            });
         }
 
         @JavascriptInterface
