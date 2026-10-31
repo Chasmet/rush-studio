@@ -23,6 +23,18 @@ jobs:
           java-version: "17"
       - name: Préparer Gradle
         run: chmod +x gradlew
+      - name: Contrôler la syntaxe du serveur et de l'interface
+        run: |
+          node --check backend/rush-premium/server.mjs
+          node - <<'JS'
+          const fs=require('fs'), vm=require('vm');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+          if(!scripts.length)throw Error('No scripts in Rush Studio');
+          scripts.forEach(src=>new vm.Script(src,{filename:'rush-studio-index-inline.js'}));
+          if(!html.includes('rushPremiumStatus')||!html.includes('rushBuyButton'))throw Error('Premium UI missing');
+          console.log('HTML and backend JS syntax valid');
+          JS
       - name: Compiler le correctif 2.3.70 code 23070
         env:
           ADMOB_APP_ID: ca-app-pub-8033777716855613~5451411809
