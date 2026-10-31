@@ -160,6 +160,7 @@ public class MainActivity extends Activity {
 
     public final class AndroidBridge {
         @JavascriptInterface public String getAppVersion() { return BuildConfig.VERSION_NAME; }
+        @JavascriptInterface public int getAppVersionCode() { return BuildConfig.VERSION_CODE; }
 
         @JavascriptInterface public void showAdPrivacyOptions() {
             runOnUiThread(() -> {
