@@ -41,3 +41,14 @@ Ne pas modifier CHK Universal Control 1.0.4 ni les routes Tailscale existantes.
 - Si la signature diffère, **ne jamais téléverser** le bundle ; procéder à la réparation de la chaîne de signature autorisée via Play Console.
 
 Un GitHub Actions vert prouve la compilation, **pas nécessairement** la présence d'une signature release ni la compatibilité avec la clé de téléchargement attendue par Google Play.
+
+## Contrôle cryptographique du bloc fourni par le propriétaire — 1 novembre 2026
+
+Contrôlé localement, sans transmettre de mot de passe à GitHub et en supprimant les fichiers temporaires :
+
+- La sauvegarde chiffrée présentée dans la conversation **se déchiffre correctement** avec le mot de passe de récupération qui lui est associé (AES-GCM).
+- Le JKS restauré (4051 octets, entrée privée `upload`, JKS v2) a SHA-256 `70d920104d9bbedd46a8afe2ff402db922b2975ad9f8160ca3a0cd660e1b9092` : **correspondance exacte** avec l'empreinte attendue par `restore-rush-upload.py`.
+- Son certificat X.509 a SHA-256 `65:67:E9:AC:FB:FD:69:97:7F:70:27:7C:AE:20:95:C9:D9:05:2F:C4:82:DF:BD:7C:F2:97:BF:46:E1:E7:10:45` ; SHA-1 `6D:4D:FD:48:5A:25:54:AB:AD:40:F5:6C:50:CA:0F:08:66:2B:12:F5`.
+- Ce certificat est différent des trois empreintes SHA-256 communiquées pour Rush Studio et du PEM public actuel du dépôt. **Aucun rapprochement avec la clé de téléchargement Google Play n'est confirmé.**
+- `keytool -list -v -keystore ... -storetype JKS` échoue avec `Password verification failed` en utilisant le mot de passe **de déchiffrement**. Celui-ci ne semble donc pas être le mot de passe interne JKS, contrairement à la mention dans le README.
+- **Publication et signature bloquées** jusqu'à l'identification du mot de passe JKS correct et de l'empreinte de clé de téléchargement reconnue par Google Play.
