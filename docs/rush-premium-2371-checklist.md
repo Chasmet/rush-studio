@@ -52,3 +52,21 @@ Contrôlé localement, sans transmettre de mot de passe à GitHub et en supprima
 - Ce certificat est différent des trois empreintes SHA-256 communiquées pour Rush Studio et du PEM public actuel du dépôt. **Aucun rapprochement avec la clé de téléchargement Google Play n'est confirmé.**
 - `keytool -list -v -keystore ... -storetype JKS` échoue avec `Password verification failed` en utilisant le mot de passe **de déchiffrement**. Celui-ci ne semble donc pas être le mot de passe interne JKS, contrairement à la mention dans le README.
 - **Publication et signature bloquées** jusqu'à l'identification du mot de passe JKS correct et de l'empreinte de clé de téléchargement reconnue par Google Play.
+
+
+## Vérification des AAB historiques reçus — 1 novembre 2026
+
+Contrôle local avec `jarsigner -verify` et extraction X.509 via `META-INF/UPLOAD.RSA`, sur les fichiers transmis dans la conversation (aucun secret copié dans GitHub) :
+
+| Fichier | Signature cryptographique | SHA-256 du certificat |
+| --- | --- | --- |
+| `Rush_Studio_2.3.70_23070_Signe.aab` | `jar verified` | `DA:5F:E7:88:59:FC:A3:D2:64:AE:8E:FB:0A:41:FB:31:08:64:1F:EA:CB:8A:B5:80:6E:89:D2:52:80:93:3F:0D` |
+| `Rush_Studio_2.3.69_23069_Google_Play_Signe.aab` | `jar verified` | même certificat |
+| `RushStudio_2.2.64_SDK24_Signe_Pour_GooglePlay.aab` | `jar verified` | même certificat |
+| `rush-studio-2.2.64-beta-interne-signe.aab` | `jar verified` | même certificat |
+
+La copie de l'AAB 2.3.70 à l'intérieur de `Rush_Studio_2.3.70_23070_Pack_Google_Play.zip` a le même SHA-256 de **fichier** que l'AAB 2.3.70 fourni séparément : `5ef3783e10a68ecf6cf51a43f711005d8cf545147be835fd95a9c7af7b87195e`.
+
+Le pack ZIP contient uniquement l'AAB signé et `Rush_Studio_Certificat_Upload_Public.pem`. Le PEM est identique au certificat des quatre AAB (SHA-256 ci-dessus). **Aucun fichier JKS ni clé privée dans le pack**.
+
+Conséquence : la chaîne historique est cohérente et prouve qu'une clé privée correspondant au certificat public a signé ces AAB. Cela **ne permet pas de récupérer cette clé privée**, ni de signer l'AAB 2.3.71. La nouvelle sauvegarde chiffrée de la conversation présentait, après déchiffrement, un certificat SHA-256 commençant par `65:67:E9:AC`, donc **différent** du certificat des AAB déjà signés. Comparer d'abord l'empreinte *upload key certificate* dans Google Play Console. Un avertissement `jarsigner` de certificat auto-signé est normal pour la signature Android et n'annule pas `jar verified`.
