@@ -14,7 +14,7 @@ from pathlib import Path
 import sys
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-EXPECTED_SHA256 = "70d920104d9bbedd46a8afe2ff402db922b2975ad9f8160ca3a0cd660e1b9092"
+EXPECTED_SHA256 = "0ed48271e048db40c0a1f7fe9f4c56bebd76d06f1c799d7852a04c30373f56c4"
 AAD = b"RushStudio/com.chk.rushstudio/upload"
 KDF_LABEL = b"Rush Studio upload keystore backup v1"
 START = "-----BEGIN RUSH STUDIO ENCRYPTED KEYSTORE-----"
