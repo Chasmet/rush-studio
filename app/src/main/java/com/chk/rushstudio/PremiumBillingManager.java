@@ -40,6 +40,7 @@ public final class PremiumBillingManager {
     private static final String KEY_STARTED = "trial_started_utc_ms";
     private static final String KEY_LAST_SEEN = "last_seen_utc_ms";
     private static final String KEY_OWNED = "purchase_server_verified";
+    private static final String KEY_PLAY_OWNED = "purchase_google_play_confirmed";
     private final MainActivity activity;
     private final SharedPreferences prefs;
     private final BillingClient billing;
@@ -47,6 +48,8 @@ public final class PremiumBillingManager {
     private String price = "";
     private String message = "";
     private boolean connected;
+    private boolean connecting;
+    private boolean disposed;
     private volatile boolean verifierOnline;
     private volatile boolean verifierChecking;
     private long verifierLastCheck;
@@ -81,8 +84,16 @@ public final class PremiumBillingManager {
             BuildConfig.PREMIUM_VERIFY_ENDPOINT.startsWith("https://");
     }
 
+    private boolean hasEntitlement() {
+        // Un achat serveur validé reste fiable ; le mode sans backend s'appuie
+        // uniquement sur les achats non consommables confirmés par Google Play.
+        return prefs.getBoolean(KEY_OWNED, false)
+            || (!verifierConfigured() && prefs.getBoolean(KEY_PLAY_OWNED, false));
+    }
+
     private boolean canCharge() {
-        boolean ready = connected && product != null && verifierConfigured() && verifierOnline;
+        boolean ready = connected && billing.isReady() && product != null
+            && (!verifierConfigured() || verifierOnline);
         // Ne commencer l'essai qu'une fois l'achat réellement possible.
         // Un produit en préparation ne peut pas réduire les 72 h offertes.
         if (ready && !prefs.contains(KEY_STARTED)) {
@@ -97,7 +108,7 @@ public final class PremiumBillingManager {
             prefs.getLong(KEY_STARTED, 0L) + TRIAL_MS - monotonicWallTime();
         // Tant que le catalogue ET le vérificateur ne fonctionnent pas,
         // continuer à fournir l'accès : ne jamais verrouiller une app sans paiement possible.
-        return prefs.getBoolean(KEY_OWNED, false) || remaining > 0 || !canCharge();
+        return hasEntitlement() || remaining > 0 || !canCharge();
     }
 
     public String status() {
@@ -106,14 +117,16 @@ public final class PremiumBillingManager {
             boolean ready = canCharge();
             long remaining = !prefs.contains(KEY_STARTED) ? TRIAL_MS :
                 Math.max(0, prefs.getLong(KEY_STARTED, 0L) + TRIAL_MS - monotonicWallTime());
-            boolean owned = prefs.getBoolean(KEY_OWNED, false);
+            boolean owned = hasEntitlement();
             json.put("sku", PRODUCT_ID);
             json.put("price", price);
             json.put("trialSeconds", remaining / 1000L);
             json.put("owned", owned);
             json.put("canUse", canUseFeatures());
             json.put("checkoutReady", canCharge());
-            json.put("billingConfigured", verifierConfigured());
+            json.put("billingConfigured", true);
+            json.put("serverVerificationConfigured", verifierConfigured());
+            json.put("verificationMode", verifierConfigured() ? "server" : "google_play_client");
             json.put("verificationOnline", verifierOnline);
             json.put("message", message);
             json.put("state", owned ? "owned" : !ready ? "configuration_pending" : remaining > 0 ? "trial" : "expired");
@@ -126,35 +139,59 @@ public final class PremiumBillingManager {
     }
 
     public void start() {
+        if (disposed) return;
         if (started) { refresh(); return; }
         started = true;
         checkVerifierHealth();
+        connectBilling();
         notifyUi();
+    }
+
+    private void connectBilling() {
+        if (disposed || connecting) return;
+        if (billing.isReady()) {
+            connected = true;
+            refresh();
+            return;
+        }
+        connecting = true;
+        message = "Connexion à Google Play Billing en cours.";
         billing.startConnection(new BillingClientStateListener() {
             @Override public void onBillingSetupFinished(BillingResult result) {
+                connecting = false;
+                if (disposed) return;
                 if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     connected = true;
+                    message = "";
                     refresh();
                 } else {
                     connected = false;
-                    message = "Connexion à Google Play Billing indisponible.";
+                    message = "Google Play Billing indisponible (" + result.getResponseCode()
+                        + "). Vérifie Play Store et réessaie.";
                     notifyUi();
                 }
             }
             @Override public void onBillingServiceDisconnected() {
+                connecting = false;
                 connected = false;
-                message = "Connexion Play Store interrompue.";
+                product = null;
+                if (disposed) return;
+                message = "Connexion Play Store interrompue. Appuie sur Actualiser pour reconnecter.";
                 notifyUi();
             }
         });
     }
 
     public void refresh() {
+        if (disposed) return;
         checkVerifierHealth();
-        if (!connected) {
+        if (!billing.isReady()) {
+            connected = false;
+            connectBilling();
             notifyUi();
             return;
         }
+        connected = true;
         QueryProductDetailsParams.Product entry = QueryProductDetailsParams.Product.newBuilder()
             .setProductId(PRODUCT_ID)
             .setProductType(BillingClient.ProductType.INAPP)
@@ -185,7 +222,7 @@ public final class PremiumBillingManager {
                 if (incorrectPrice) product = null;
                 message = incorrectPrice ? "Le tarif Google Play en euros ne correspond pas à 0,49 €. Achat désactivé jusqu'à correction." :
                     product == null ? "Le produit rush_premium n'est pas disponible sur Google Play." :
-                    verifierConfigured() ? "" : "Validation sécurisée des achats non configurée. Aucun paiement ne sera déclenché.";
+                    verifierConfigured() ? "" : "Achat unique disponible via Google Play. Aucun abonnement.";
                 notifyUi();
             });
         billing.queryPurchasesAsync(QueryPurchasesParams.newBuilder()
@@ -206,9 +243,11 @@ public final class PremiumBillingManager {
                         notifyUi();
                     }
                 }
-                if (!foundPurchased && prefs.getBoolean(KEY_OWNED, false)) {
-                    // Remboursement/révocation : ne conserver aucun accès obsolète.
-                    prefs.edit().putBoolean(KEY_OWNED, false).apply();
+                if (!foundPurchased && hasEntitlement()) {
+                    // Une requête Play réussie sans achat retire le droit (remboursement,
+                    // révocation ou changement de compte Google Play).
+                    prefs.edit().putBoolean(KEY_OWNED, false)
+                        .putBoolean(KEY_PLAY_OWNED, false).apply();
                     notifyUi();
                 }
             });
@@ -257,6 +296,7 @@ public final class PremiumBillingManager {
     }
 
     public void buy() {
+        if (hasEntitlement()) { message = "Premium est déjà acheté."; notifyUi(); return; }
         if (!canCharge()) {
             message = "Achat non disponible : catalogue Google Play ou vérification du paiement non prêt.";
             notifyUi();
@@ -286,8 +326,11 @@ public final class PremiumBillingManager {
         }
         for (Purchase p : purchases) {
             if (!p.getProducts().contains(PRODUCT_ID)) continue;
-            if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) verifyPurchase(p);
-            else if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) {
+            if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                // Confirmer d'abord la possession avec une requête au Play Store.
+                if (verifierConfigured()) verifyPurchase(p);
+                else refresh();
+            } else if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) {
                 message = "Paiement en attente : aucun accès débloqué.";
                 notifyUi();
             }
@@ -295,9 +338,29 @@ public final class PremiumBillingManager {
     }
 
     private void verifyPurchase(Purchase purchase) {
+        if (purchase.getPurchaseState() != Purchase.PurchaseState.PURCHASED
+            || !purchase.getProducts().contains(PRODUCT_ID)
+            || purchase.getPurchaseToken() == null || purchase.getPurchaseToken().isEmpty()) {
+            return; // Ne jamais débloquer un achat PENDING ou invalide.
+        }
         if (!verifierConfigured()) {
-            message = "Achat détecté, mais validation sécurisée indisponible. Contacter le support.";
+            // Mode client-only, autorisé pour un produit non consommable : ce chemin
+            // est appelé après queryPurchasesAsync() réussi auprès de Google Play.
+            // Pour la protection antifraude complète, renseigner un vérificateur HTTPS
+            // utilisant Google Play Developer API côté serveur.
+            prefs.edit().putBoolean(KEY_PLAY_OWNED, true).apply();
+            message = "Achat confirmé par Google Play. Premium débloqué définitivement.";
             notifyUi();
+            if (!purchase.isAcknowledged()) {
+                AcknowledgePurchaseParams ack = AcknowledgePurchaseParams.newBuilder()
+                    .setPurchaseToken(purchase.getPurchaseToken()).build();
+                billing.acknowledgePurchase(ack, response -> {
+                    if (response.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                        message = "Achat confirmé ; validation Google Play à réessayer.";
+                        notifyUi();
+                    }
+                });
+            }
             return;
         }
         if (checking) return;
@@ -363,5 +426,5 @@ public final class PremiumBillingManager {
         }, "rush-premium-verifier").start();
     }
 
-    public void destroy() { billing.endConnection(); }
+    public void destroy() { disposed = true; billing.endConnection(); }
 }

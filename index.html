@@ -271,7 +271,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="section orange">
 <h2>Mises à jour</h2>
 <p class="small-muted">Vérifie les nouvelles versions et lance leur installation directement depuis Rush Studio, avec le système officiel de Google Play. Tes données restent conservées.</p>
-<div class="version-line" style="margin-top:12px">Version installée : <strong id="installedVersion">2.3.70</strong> <span id="installedVersionCode" class="small-muted"></span></div>
+<div class="version-line" style="margin-top:12px">Version installée : <strong id="installedVersion">2.3.71</strong> <span id="installedVersionCode" class="small-muted"></span></div>
 <button class="primary" onclick="checkForUpdate()">Vérifier les mises à jour</button>
 <button class="primary" id="completeUpdateButton" style="display:none" onclick="completeUpdate()">Installer et redémarrer</button>
 <div class="status" id="updateStatus" aria-live="polite"></div>
@@ -310,7 +310,7 @@ body{background:radial-gradient(circle at 18% 0%,rgba(255,151,0,.105),transparen
 <div class="brand-footer">Rush Studio · une application <b>Sync 30 Numérique</b></div>
 
 <script>
-const WEB_VERSION='2.3.70';
+const WEB_VERSION='2.3.71';
 // Activer uniquement après la première publication effective sur Google Play.
 function isPlayInstalled(){
   if(!isAndroid())return false;
@@ -599,13 +599,13 @@ function onRushPremiumStatus(payload){
   const remain=Math.max(0,Number(payload.trialSeconds)||0);
   const d=Math.floor(remain/86400),h=Math.floor((remain%86400)/3600),m=Math.ceil((remain%3600)/60);
   if(payload.owned){
-    status.textContent='Premium activé. Ton achat unique a été vérifié.';
+    status.textContent='Premium activé. Ton achat unique Google Play est confirmé.';
   }else if(payload.state==='trial'){
     status.textContent='Essai gratuit : '+d+' j '+h+' h '+m+' min restants.';
   }else if(payload.state==='expired'){
     status.textContent='Les 3 jours d’essai sont terminés. Confirme ton achat pour poursuivre.';
   }else{
-    status.textContent='Activation du paiement en préparation. L’application reste utilisable gratuitement tant que l’achat n’est pas disponible.';
+    status.textContent='Paiement Google Play en cours de connexion. L’application reste utilisable gratuitement tant que l’achat est indisponible.';
   }
   if(payload.message)status.textContent+=' '+payload.message;
   price.textContent=payload.price ? 'Prix officiel affiché par Google Play : '+payload.price

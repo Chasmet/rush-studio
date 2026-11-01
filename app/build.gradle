@@ -22,8 +22,8 @@ android {
         applicationId "com.chk.rushstudio"
         minSdk 24
         targetSdk 36
-        versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 22000
-        versionName ciVersionName != null ? ciVersionName : "2.2.0"
+        versionCode ciVersionCode != null ? ciVersionCode.toInteger() : 23071
+        versionName ciVersionName != null ? ciVersionName : "2.3.71"
         buildConfigField 'String', 'PREMIUM_VERIFY_ENDPOINT', '"' + premiumVerifyEndpoint.replace('"', '') + '"'
         buildConfigField 'boolean', 'ADMOB_READY', admobReady.toString()
         buildConfigField 'String', 'ADMOB_BANNER_UNIT_ID', '"' + (admobReady ? admobBannerId : '') + '"'
