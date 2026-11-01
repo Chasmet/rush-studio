@@ -90,21 +90,6 @@ jobs:
             app/build/outputs/bundle/release/app-release.aab
           retention-days: 7
 
-      # Export d'audit ponctuel : cette copie RSK1 est DEJA PUBLIQUE dans le depot main.
-      # Ne jamais exporter un JKS dechiffre, un mot de passe ou un certificat prive.
-      - name: Audit - lire sauvegarde chiffree historique
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          path: rush-audit-main
-      - name: Audit - archiver la seule sauvegarde chiffree
-        uses: actions/upload-artifact@v4
-        with:
-          name: rush-audit-encrypted-keybackup
-          path: rush-audit-main/security/keystore-backup/rush-studio-upload-2026.jks.rsk1.b64
-          retention-days: 1
-          if-no-files-found: error
-
       - name: Résumé publication
         run: |
           echo "### Rush Studio $APP_VERSION" >> "$GITHUB_STEP_SUMMARY"
