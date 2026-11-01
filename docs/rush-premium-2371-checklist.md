@@ -30,3 +30,14 @@ Google recommande de faire valider chaque jeton d'achat sur serveur par l'API Go
 11. Publier seulement après contrôle manuel des résultats Play, du tarif et du certificat.
 
 Ne pas modifier CHK Universal Control 1.0.4 ni les routes Tailscale existantes.
+
+## Contrôle obligatoire de signature — 1 novembre 2026
+
+- Récupération JKS : utiliser la sauvegarde chiffrée détenue par le propriétaire **sans committer, transmettre ou journaliser le secret de déchiffrement**.
+- Le script officiel `security/keystore-backup/restore-rush-upload.py` attend la valeur SHA-256 du **fichier JKS déchiffré** `70d920104d9bbedd46a8afe2ff402db922b2975ad9f8160ca3a0cd660e1b9092`. Le README sur `main` mentionne une valeur plus ancienne ; ne pas utiliser cette ligne obsolète pour valider une restauration.
+- Le certificat public `security/keystore-backup/rush-studio-upload-certificate.pem` sur `main` possède SHA-1 `BF:76:13:78:25:EE:89:10:39:E3:BB:BC:92:48:85:09:5A:9D:3A:CE` et SHA-256 `DA:5F:E7:88:59:FC:A3:D2:64:AE:8E:FB:0A:41:FB:31:08:64:1F:EA:CB:8A:B5:80:6E:89:D2:52:80:93:3F:0D`.
+- Ce SHA-256 de certificat **ne correspond à aucune des trois valeurs annoncées par le propriétaire**. L'empreinte de la clé de téléchargement enregistrée dans **Protected with Play > Play App Signing** doit être comparée avant de publier un AAB. Ne pas confondre la clé de signature Google Play (app signing key) et la clé de téléchargement (upload key).
+- La copie chiffrée présentée dans la conversation est différente de celle du dépôt GitHub (contenu chiffré distinct). Ne pas conclure à l'identité des clés avant restauration et extraction locale du certificat.
+- Si la signature diffère, **ne jamais téléverser** le bundle ; procéder à la réparation de la chaîne de signature autorisée via Play Console.
+
+Un GitHub Actions vert prouve la compilation, **pas nécessairement** la présence d'une signature release ni la compatibilité avec la clé de téléchargement attendue par Google Play.
