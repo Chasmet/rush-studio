@@ -599,13 +599,13 @@ function onRushPremiumStatus(payload){
   const remain=Math.max(0,Number(payload.trialSeconds)||0);
   const d=Math.floor(remain/86400),h=Math.floor((remain%86400)/3600),m=Math.ceil((remain%3600)/60);
   if(payload.owned){
-    status.textContent='Premium activé. Ton achat unique a été vérifié.';
+    status.textContent='Premium activé. Ton achat unique Google Play est confirmé.';
   }else if(payload.state==='trial'){
     status.textContent='Essai gratuit : '+d+' j '+h+' h '+m+' min restants.';
   }else if(payload.state==='expired'){
     status.textContent='Les 3 jours d’essai sont terminés. Confirme ton achat pour poursuivre.';
   }else{
-    status.textContent='Activation du paiement en préparation. L’application reste utilisable gratuitement tant que l’achat n’est pas disponible.';
+    status.textContent='Paiement Google Play en cours de connexion. L’application reste utilisable gratuitement tant que l’achat est indisponible.';
   }
   if(payload.message)status.textContent+=' '+payload.message;
   price.textContent=payload.price ? 'Prix officiel affiché par Google Play : '+payload.price
